@@ -1,0 +1,37 @@
+tags:
+  - "User"
+parameters:
+  - name: user_id
+    in: path
+    description: ID of the user to retrieve.
+    required: true
+    type: string
+    format: uuid # Cambiado a UUID
+definitions:
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: The user's unique ID.
+      username:
+        type: string
+        description: The user's username.
+      email:
+        type: string
+        format: email
+        description: The user's email address.
+    example:
+      id: "123e4567-e89b-12d3-a456-426614174000"
+      username: "john_doe"
+      email: "john.doe@example.com"
+responses:
+  "200":
+    description: Successful operation
+    schema:
+      $ref: "#/definitions/User"
+  "400":
+    description: Invalid user ID supplied
+  "404":
+    description: User not found

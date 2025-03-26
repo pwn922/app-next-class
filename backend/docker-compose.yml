@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgresql}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-db_api}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  web-prod:
+    build:
+      context: .
+      target: prod
+    #command: gunicorn --bind 0.0.0.0:5000 app:app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    profiles: [prod]
+    environment:
+      DB_USER: ${DB_USER:-postgresql}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-db_api}
+      SECRET_KEY: ${SECRET_KEY:-mysecretkey}
+      DEBUG: ${DEBUG:-False}
+
+volumes:
+  postgres_data:
