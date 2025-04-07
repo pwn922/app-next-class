@@ -26,7 +26,11 @@ class ConfigFlask:
         },
     }
 
-class ConfigAuth:
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', os.urandom(24))
+    JWT_ALGORITHMS = os.getenv('JWT_ALGORITHMS', 'RS256').split(",")
+    
+
+class ConfigGoogle:
     load_dotenv()
 
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
