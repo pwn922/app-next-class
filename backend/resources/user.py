@@ -1,17 +1,15 @@
 from flask_restful import Resource
 from flasgger.utils import swag_from
 from flask import jsonify, make_response
-from models.base import db
+from database.db import db
 from models.user import User
 
 class UserResource(Resource):
     @swag_from('../docs/users/get.yml')
     def get(self, user_id):
         try:
-            db.session.query()
             user = db.session.query(User).filter_by(id=user_id).first()
             if not user:
-                user.name
                 return make_response(jsonify({"error": 'User not found.'}), 404)
 
             user_obj = {"id": user.id, "name": user.name, "email": user.email}
@@ -19,7 +17,6 @@ class UserResource(Resource):
 
         except Exception as e:
             return make_response(jsonify({"error": str(e)}), 500)
-        
     
     #def put(self, user_id):
      #   pass
@@ -35,5 +32,4 @@ class UserResource(Resource):
         #args = parser.parse_args()
         #todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
         #todo_id = 'todo%i' % todo_id
-        #TODOS[todo_id] = {'task': args['task']}
-        
+        ##tODOS[todo_id] = {'task': args['task']}
