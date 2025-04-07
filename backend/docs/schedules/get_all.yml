@@ -1,0 +1,11 @@
+tags:
+  - "Schedule"
+responses:
+  "200":
+    description: A list of schedules
+    schema:
+      type: array
+      items:
+        $ref: "#/definitions/Schedule"
+  "500":
+    description: Internal server error

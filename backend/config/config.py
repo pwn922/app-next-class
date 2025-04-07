@@ -26,23 +26,3 @@ class ConfigFlask:
         },
     }
 
-class ConfigAuth:
-    load_dotenv()
-
-    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
-    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
-
-    if not GOOGLE_CLIENT_ID:
-        print("Error: GOOGLE_CLIENT_ID is not configured.")
-        sys.exit(1)
-
-    if not GOOGLE_CLIENT_SECRET:
-        print("Error: GOOGLE_CLIENT_SECRET is not configured.")
-        sys.exit(1)
-
-    GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
-    GOOGLE_SCOPES = [
-        "openid",
-        "https://www.googleapis.com/auth/userinfo.email",
-        "https://www.googleapis.com/auth/userinfo.profile",
-    ]

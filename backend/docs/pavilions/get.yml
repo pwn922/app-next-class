@@ -1,0 +1,19 @@
+tags:
+  - "Pavilion"
+summary: Get a pavilion by ID
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: The ID of the pavilion
+responses:
+  "200":
+    description: Pavilion found
+    schema:
+      $ref: "#/definitions/Pavilion"
+  "404":
+    description: Pavilion not found
+  "500":
+    description: Internal server error

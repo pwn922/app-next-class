@@ -1,0 +1,27 @@
+tags:
+  - "Subject"
+responses:
+  "200":
+    description: A list of all subjects
+    schema:
+      type: array
+      items:
+        $ref: "#/definitions/Subject"
+  "500":
+    description: Internal server error
+
+definitions:
+  Subject:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      code:
+        type: string
+    example:
+      id: "1a2b3c4d-5e6f-7a8b-9c0d-123456789abc"
+      name: "Anatomía"
+      code: "ANA101"

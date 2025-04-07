@@ -1,0 +1,18 @@
+tags:
+  - "Subject"
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: ID of the subject to retrieve
+responses:
+  "200":
+    description: Subject found
+    schema:
+      $ref: "#/definitions/Subject"
+  "404":
+    description: Subject not found
+  "500":
+    description: Internal server error

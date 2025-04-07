@@ -1,0 +1,29 @@
+tags:
+  - "Classroom"
+summary: Get all classrooms
+description: Retrieve a list of all classrooms.
+responses:
+  "200":
+    description: A list of classrooms.
+    schema:
+      type: array
+      items:
+        $ref: "#/definitions/Classroom"
+  "500":
+    description: Internal server error
+definitions:
+  Classroom:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      number:
+        type: integer
+      pavilion_id:
+        type: string
+        format: uuid
+    example:
+      id: "5d6a8b99-1234-4567-89ab-abcdef123456"
+      number: 101
+      pavilion_id: "1a2b3c4d-5678-90ef-ghij-klmnopqrstuv"

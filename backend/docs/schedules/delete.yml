@@ -1,0 +1,16 @@
+tags:
+  - "Schedule"
+parameters:
+  - name: schedule_id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: ID of the schedule to delete
+responses:
+  "204":
+    description: Schedule deleted successfully.
+  "404":
+    description: Schedule not found
+  "500":
+    description: Internal server error
