@@ -1,0 +1,54 @@
+tags:
+  - "Schedule"
+parameters:
+  - in: body
+    name: body
+    description: Schedule creation data.
+    required: true
+    schema:
+      $ref: "#/definitions/ScheduleCreateRequest"
+responses:
+  "201":
+    description: Schedule created successfully.
+    schema:
+      $ref: "#/definitions/Schedule"
+  "400":
+    description: Invalid input
+  "500":
+    description: Internal server error
+definitions:
+  ScheduleCreateRequest:
+    type: object
+    required:
+      - user_id
+      - subject_id
+      - classroom_id
+      - date
+      - start
+      - end
+    properties:
+      user_id:
+        type: string
+        format: uuid
+      subject_id:
+        type: string
+        format: uuid
+      classroom_id:
+        type: string
+        format: uuid
+      date:
+        type: string
+        format: date-time
+      start:
+        type: string
+        format: time
+      end:
+        type: string
+        format: time
+    example:
+      user_id: "user-uuid"
+      subject_id: "subject-uuid"
+      classroom_id: "classroom-uuid"
+      date: "2025-04-07T10:00:00Z"
+      start: "10:00:00"
+      end: "12:00:00"

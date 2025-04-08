@@ -1,0 +1,34 @@
+tags:
+  - "Classroom"
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: "#/definitions/ClassroomCreate"
+responses:
+  "201":
+    description: Classroom created successfully
+    schema:
+      $ref: "#/definitions/Classroom"
+  "400":
+    description: Missing required fields
+  "500":
+    description: Internal server error
+definitions:
+  ClassroomCreate:
+    type: object
+    properties:
+      number:
+        type: integer
+        description: Classroom number
+      pavilion_id:
+        type: string
+        format: uuid
+        description: Pavilion ID the classroom belongs to
+    required:
+      - number
+      - pavilion_id
+    example:
+      number: 102
+      pavilion_id: "1a2b3c4d-5678-90ef-ghij-klmnopqrstuv"

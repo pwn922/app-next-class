@@ -1,0 +1,16 @@
+tags:
+  - "Classroom"
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: ID of the classroom to delete
+responses:
+  "204":
+    description: Classroom deleted successfully
+  "404":
+    description: Classroom not found
+  "500":
+    description: Internal server error

@@ -1,0 +1,25 @@
+tags:
+  - "Pavilion"
+summary: Get all pavilions
+description: Retrieve a list of all pavilions.
+responses:
+  "200":
+    description: A list of pavilions.
+    schema:
+      type: array
+      items:
+        $ref: "#/definitions/Pavilion"
+  "500":
+    description: Internal server error
+definitions:
+  Pavilion:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+    example:
+      id: "a1b2c3d4-e5f6-7890-abcd-1234567890ef"
+      name: "North Pavilion"

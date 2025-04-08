@@ -1,0 +1,35 @@
+tags:
+  - "Pavilion"
+summary: Update an existing pavilion
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: ID of the pavilion to update
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: "#/definitions/PavilionUpdateRequest"
+responses:
+  "200":
+    description: Pavilion updated successfully
+    schema:
+      $ref: "#/definitions/Pavilion"
+  "400":
+    description: Invalid input
+  "404":
+    description: Pavilion not found
+  "500":
+    description: Internal server error
+definitions:
+  PavilionUpdateRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Updated name of the pavilion
+    example:
+      name: "Updated Pavilion"

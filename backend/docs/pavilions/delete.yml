@@ -1,0 +1,17 @@
+tags:
+  - "Pavilion"
+summary: Delete a pavilion
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: The ID of the pavilion to delete
+responses:
+  "204":
+    description: Pavilion deleted successfully
+  "404":
+    description: Pavilion not found
+  "500":
+    description: Internal server error

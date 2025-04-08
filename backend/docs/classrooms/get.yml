@@ -1,0 +1,18 @@
+tags:
+  - "Classroom"
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: ID of the classroom to retrieve.
+responses:
+  "200":
+    description: Successful response
+    schema:
+      $ref: "#/definitions/Classroom"
+  "404":
+    description: Classroom not found
+  "500":
+    description: Internal server error

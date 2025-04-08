@@ -1,0 +1,16 @@
+tags:
+  - "User"
+parameters:
+  - name: user_id
+    in: path
+    description: ID of the user to delete.
+    required: true
+    type: string
+    format: uuid
+responses:
+  "204":
+    description: User deleted successfully. No content.
+  "404":
+    description: User not found.
+  "500":
+    description: Internal server error

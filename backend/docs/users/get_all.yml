@@ -1,0 +1,28 @@
+tags:
+  - "User"
+responses:
+  "200":
+    description: A list of users
+    schema:
+      type: array
+      items:
+        $ref: "#/definitions/User"
+  "500":
+    description: Internal server error
+
+definitions:
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      email:
+        type: string
+        format: email
+    example:
+      id: "123e4567-e89b-12d3-a456-426614174000"
+      name: "john_doe"
+      email: "john.doe@example.com"
