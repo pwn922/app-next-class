@@ -2,7 +2,7 @@ import uuid
 from flask_restful import Resource, request
 from flasgger.utils import swag_from
 from flask import jsonify, make_response
-from models.base import db
+from database.db import db
 from models.schedule import Schedule
 
 class ScheduleResource(Resource):
