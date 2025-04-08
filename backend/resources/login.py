@@ -163,9 +163,12 @@ class LoginCallbackResource(Resource):
         expires_delta = expire_datetime - datetime.now(timezone.utc)
 
         expires_delta_refresh = timedelta(days=7)
-        expiration_refresh_time = datetime.now(timezone.utc) + expires_delta_refresh
 
-        logging.info(f"expires_delta: {expires_delta}\n")
+        logging.info(f"Access token will expire on: {expires_delta} (hh:mm:ss)")
+
+        refresh_expiration_time = datetime.now(timezone.utc) + expires_delta_refresh
+
+        logging.info(f"Refresh token will expire on: {expires_delta_refresh} (days)")
 
         jwt_token = create_access_token(
             identity=identity, 
@@ -173,7 +176,9 @@ class LoginCallbackResource(Resource):
         
         jwt_refresh_token = create_refresh_token(
             identity=identity, 
-            expires_delta=expiration_refresh_time
+            expires_delta=expires_delta_refresh
         )
+
+        logging.info(f"Refresh token: {jwt_refresh_token}")
 
         return jwt_token
