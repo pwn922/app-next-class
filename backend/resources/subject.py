@@ -3,7 +3,7 @@ from flask_restful import Resource, request
 from flasgger.utils import swag_from
 from flask import jsonify, make_response
 from models.subject import Subject
-from models.base import db
+from database.db import db
 
 class SubjectListResource(Resource):
     @swag_from('../docs/subjects/get_all.yml')
