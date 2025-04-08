@@ -11,18 +11,18 @@ from resources.logout import LogoutResource
 from resources.user import UserResource
 from flask_migrate import Migrate
 from config.config import ConfigFlask
-from database.db import db
+from database.db import db, init_db
 from flask_cors import CORS
 import os
 
-from auth import jwt_auth
+from auth.jwt_auth import init_jwt
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 app = Flask(__name__)
 app.config.from_object(ConfigFlask)
-db.init_app(app)
-jwt_auth.init_jwt(app)
+init_db(app)
+init_jwt(app)
 
 CORS(app, origins=[
     'https://accounts.google.com',
