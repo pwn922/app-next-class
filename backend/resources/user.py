@@ -69,16 +69,44 @@ class UserResource(Resource):
             return make_response(jsonify({"error": str(e)}), 500)
 
 class UserListResource(Resource):
+    @swag_from("../docs/users/get_all.yml")
     def get(self):
-        pass
-        # user_data = {"user_id": "1", "username": "example_user", "email": "user@example.com"}
-        # return jsonify(user_data), 200
+        try:
+            users = db.session.query(User).all()
+            result = [
+                {"id": str(user.id), "name": user.name, "email": user.email}
+                for user in users
+            ]
+            return make_response(jsonify(result), 200)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
 
-    #@swag_from('../docs/users.yml')
-#    def post(self):
- #       pass
-        #args = parser.parse_args()
-        #todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
-        #todo_id = 'todo%i' % todo_id
-        #TODOS[todo_id] = {'task': args['task']}
-        
+    @swag_from("../docs/users/post.yml")
+    def post(self):
+        try:
+            data = request.json
+            name = data.get("name")
+            email = data.get("email")
+            password = data.get("password")
+
+            if not name or not email or not password:
+                return make_response(jsonify({"error": "Missing required fields."}), 400)
+
+            new_user = User(
+                id=uuid.uuid4(),
+                name=name,
+                email=email,
+                password=password
+            )
+
+            db.session.add(new_user)
+            db.session.commit()
+
+            return make_response(jsonify({
+                "id": str(new_user.id),
+                "name": new_user.name,
+                "email": new_user.email
+            }), 201)
+
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
