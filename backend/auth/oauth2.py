@@ -15,28 +15,49 @@ CLIENT_ID = ConfigGoogle.GOOGLE_CLIENT_ID
 GOOGLE_SCOPES = ConfigGoogle.GOOGLE_SCOPES
 GOOGLE_DISCOVERY_URL = ConfigGoogle.GOOGLE_DISCOVERY_URL
 
+
 def create_oauth2_session(state=None):
     redirect_uri = request.host_url.removesuffix("/") + url_for("callback")
-    #print()
-    #print(redirect_uri)
-    #print(ConfigAuth.GOOGLE_SCOPES)
     return OAuth2Session(
-            client_id=CLIENT_ID, 
+            client_id=CLIENT_ID,
             scope=GOOGLE_SCOPES,
             redirect_uri=redirect_uri,
-            state=state)
+            state=state
+    )
+
 
 def get_openid_configuration():
     try:
-        response = requests.get(GOOGLE_DISCOVERY_URL)
+        response = requests.get(GOOGLE_DISCOVERY_URL, timeout=5)
         response.raise_for_status()
         return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching OpenID configuration: {e}")
-        return None
-    except ValueError as e:
-        print(f"Error parsing JSON from OpenID configuration: {e}")
-        return None
+    except requests.exceptions.HTTPError as http_err:
+        logging.error(
+            f"HTTP error while fetching OpenID configuration: "
+            f"{http_err}"
+        )
+    except requests.exceptions.ConnectionError as conn_err:
+        logging.error(
+            f"Connection error while fetching OpenID "
+            f"configuration: {conn_err}"
+        )
+    except requests.exceptions.Timeout as timeout_err:
+        logging.error(
+            f"Timeout error while fetching OpenID "
+            f"configuration: {timeout_err}"
+        )
+    except requests.exceptions.RequestException as req_err:
+        logging.error(
+            f"RequestException while fetching OpenID "
+            f"configuration: {req_err}"
+        )
+    except ValueError as json_err:
+        logging.error(
+            f"Error parsing JSON from OpenID configuration: "
+            f"{json_err}"
+        )
+    return None
+
 
 def verify_id_token(token):
     try:
@@ -49,7 +70,7 @@ def verify_id_token(token):
         if not keys:
             return None
 
-        #logging.info(f"Keys: {keys}")
+        # logging.info(f"Keys: {keys}")
         jwt_header = jwt.get_unverified_header(token)
         kid = jwt_header.get('kid', '')
         if not kid:
@@ -84,9 +105,11 @@ def verify_id_token(token):
     except jwt.ExpiredSignatureError:
         logging.error("Token expired")
         return None
+
     except jwt.InvalidTokenError as e:
         logging.error(f"Invalid token!: {e}\n")
         return None
+
     except Exception as e:
         logging.exception(f"Unexpected error verifying token: {e}")
         return None
