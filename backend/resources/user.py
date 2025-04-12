@@ -1,9 +1,14 @@
 import uuid
-from flask_restful import Resource, reqparse, request
+import logging
+from flask_restful import Resource, request
 from flasgger.utils import swag_from
-from flask import jsonify, make_response
 from database.db import db
 from models.user import User
+from utils.responses import success_response, error_response
+from responses.user_response import UserSuccessResponse, UserErrorResponse
+
+logging.basicConfig(level=logging.INFO)
+
 
 class UserResource(Resource):
     @swag_from('../docs/users/get.yml')
@@ -11,62 +16,108 @@ class UserResource(Resource):
         try:
             user = db.session.query(User).filter_by(id=user_id).first()
             if not user:
-                return make_response(jsonify({"error": 'User not found.'}), 404)
+                return error_response(
+                    error_code=UserErrorResponse.NOT_FOUND.name,
+                    status_code=UserErrorResponse.NOT_FOUND.value
+                    .get("status_code"),
+                    message=UserErrorResponse.NOT_FOUND.value
+                    .get("message")
+                )
 
-            user_obj = {"id": user.id, "name": user.name, "email": user.email}
-            return make_response(jsonify(user_obj), 200)
-
+            user_obj = {
+                "id": str(user.id),
+                "name": user.name,
+                "email": user.email
+            }
+            return success_response(
+                message_key=UserSuccessResponse.RETRIEVED.value
+                .get("message"),
+                status_code=UserSuccessResponse.RETRIEVED.value
+                .get("status_code"),
+                data=user_obj
+            )
         except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
-        
-    
-    #def put(self, user_id):
-     #   pass
-
-    #def delete(self, user_id):
-    # pass
+            logging.error(f"Unexpected error during get user: {e}")
+            return error_response(
+                error_code=UserErrorResponse.UNEXPECTED_ERROR.name,
+                status_code=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("status_code"),
+                message=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("message")
+            )
 
     @swag_from('../docs/users/put.yml')
     def put(self, user_id):
         try:
             user = db.session.query(User).filter_by(id=user_id).first()
             if not user:
-                return make_response(jsonify({"error": 'User not found.'}), 404)
+                return error_response(
+                    error_code=UserErrorResponse.NOT_FOUND.name,
+                    status_code=UserErrorResponse.NOT_FOUND.value
+                    .get("status_code"),
+                    message=UserErrorResponse.NOT_FOUND.value
+                    .get("message")
+                )
 
             data = request.json
-            name = data.get("name")
-            email = data.get("email")
-
-            if name:
-                user.name = name
-            if email:
-                user.email = email
+            user.name = data.get("name", user.name)
+            user.email = data.get("email", user.email)
 
             db.session.commit()
 
-            return make_response(jsonify({
-                "id": user.id,
-                "name": user.name,
-                "email": user.email
-            }), 200)
-
+            return success_response(
+                message_key=UserSuccessResponse.UPDATED.value
+                .get("message"),
+                status_code=UserSuccessResponse.UPDATED.value
+                .get("status_code"),
+                data={
+                    "id": str(user.id),
+                    "name": user.name,
+                    "email": user.email
+                }
+            )
         except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
+            logging.error(f"Unexpected error during put user: {e}")
+            return error_response(
+                error_code=UserErrorResponse.UNEXPECTED_ERROR.name,
+                status_code=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("status_code"),
+                message=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("message")
+            )
 
     @swag_from('../docs/users/delete.yml')
     def delete(self, user_id):
         try:
             user = db.session.query(User).filter_by(id=user_id).first()
             if not user:
-                return make_response(jsonify({"error": 'User not found.'}), 404)
+                return error_response(
+                    error_code=UserErrorResponse.NOT_FOUND.name,
+                    status_code=UserErrorResponse.NOT_FOUND.value
+                    .get("status_code"),
+                    message=UserErrorResponse.NOT_FOUND.value
+                    .get("message")
+                )
 
             db.session.delete(user)
             db.session.commit()
 
-            return make_response('', 204)
-
+            return success_response(
+                message_key=UserSuccessResponse.DELETED.value
+                .get("message"),
+                status_code=UserSuccessResponse.DELETED.value
+                .get("status_code")
+            )
         except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
+            logging.error(f"Unexpected error during delete user: {e}")
+            return error_response(
+                error_code=UserErrorResponse.UNEXPECTED_ERROR.name,
+                status_code=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("status_code"),
+                message=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("message")
+            )
+
 
 class UserListResource(Resource):
     @swag_from("../docs/users/get_all.yml")
@@ -77,9 +128,22 @@ class UserListResource(Resource):
                 {"id": str(user.id), "name": user.name, "email": user.email}
                 for user in users
             ]
-            return make_response(jsonify(result), 200)
+            return success_response(
+                message_key=UserSuccessResponse.LIST_RETRIEVED.value
+                .get("message"),
+                status_code=UserSuccessResponse.LIST_RETRIEVED.value
+                .get("status_code"),
+                data=result
+            )
         except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
+            logging.error(f"Unexpected error during get users: {e}")
+            return error_response(
+                error_code=UserErrorResponse.UNEXPECTED_ERROR.name,
+                status_code=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("status_code"),
+                message=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("message")
+            )
 
     @swag_from("../docs/users/post.yml")
     def post(self):
@@ -90,7 +154,13 @@ class UserListResource(Resource):
             password = data.get("password")
 
             if not name or not email or not password:
-                return make_response(jsonify({"error": "Missing required fields."}), 400)
+                return error_response(
+                    error_code=UserErrorResponse.MISSING_FIELDS.name,
+                    status_code=UserErrorResponse.MISSING_FIELDS.value
+                    .get("status_code"),
+                    message=UserErrorResponse.MISSING_FIELDS.value
+                    .get("message")
+                )
 
             new_user = User(
                 id=uuid.uuid4(),
@@ -102,11 +172,23 @@ class UserListResource(Resource):
             db.session.add(new_user)
             db.session.commit()
 
-            return make_response(jsonify({
-                "id": str(new_user.id),
-                "name": new_user.name,
-                "email": new_user.email
-            }), 201)
-
+            return success_response(
+                message_key=UserSuccessResponse.CREATED.value
+                .get("message"),
+                status_code=UserSuccessResponse.CREATED.value
+                .get("status_code"),
+                data={
+                    "id": str(new_user.id),
+                    "name": new_user.name,
+                    "email": new_user.email
+                }
+            )
         except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
+            logging.error(f"Unexpected error during post users: {e}")
+            return error_response(
+                error_code=UserErrorResponse.UNEXPECTED_ERROR.name,
+                status_code=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("status_code"),
+                message=UserErrorResponse.UNEXPECTED_ERROR.value
+                .get("message")
+            )
