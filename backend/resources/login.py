@@ -1,88 +1,104 @@
-from datetime import datetime
-from datetime import timedelta
-from datetime import timezone
-
+from datetime import datetime, timedelta, timezone
 import uuid
+import logging
 
-import jwt
-from jwt.exceptions import InvalidAlgorithmError
-#from flasgger.utils import swag_from
+from flask import request, redirect, session
+from flask_restful import Resource
+from flask_jwt_extended import create_access_token, create_refresh_token
+from flasgger.utils import swag_from
+
+from oauthlib.oauth2.rfc6749.errors import OAuth2Error
+
+from responses.login_response import (
+    LoginErrorResponse,
+    LoginSuccessResponse
+)
+
+from utils.responses import error_response, success_response
+
+from exceptions.oauth2 import (
+    OAuth2ExternalServiceError,
+    OAuth2FlowError,
+)
+
 from database.db import db
 from models.user import User
-from models.refresh_token import RefreshToken
-from flask import request, jsonify, redirect, session, make_response
-import logging
-from flask_restful import Resource
-from oauthlib.oauth2.rfc6749.errors import InvalidGrantError, InsecureTransportError, OAuth2Error
 from auth import oauth2
-from flask_jwt_extended import create_access_token, create_refresh_token #, verify_jwt_in_request, get_jwt_identity
-
-#from flask_jwt_extended.exceptions import RevokedTokenError
 
 
 logging.basicConfig(level=logging.INFO)
 
 OAUTH_STATE_SESSION = "oauth_state"
 
-AUTH_ERROR = {"success": False, "message": "An error has occurred in the authentication process.", "error_code": "AUTH_ERROR", "data": {}}
-ALREADY_LOGGED_IN = {"success": True, "message": "You are still logged in.", "data": {}}
-LOGIN_SUCCESS = {"success": True, "message": "Login successful.", "data": {}}
-
-INVALID_JWT = {"success": False, "message": "The JWT provided is not valid.", "error_code": "INVALID_JWT", "data": {}}
-
-
-# TODO - MEJORAR LOS ERRORES Y LOS ARRIBA
-# TODO - CREAR REFRESH TOKEN ENDPOINT
-# TODO - ALMACENAR O ACTUALIZAR EL REFRESH TOKEN
-# TODO - CREAR CERRAR SESIÓN Y ELIMINAR ACCESS_TOKEN y EL DE GOOGLE. 
-# TODO - PREGUNTAR SI DEBERIA ALMACENAR EL REFRESH TOKEN. 
-# TODO - COLOCAR EXP DEL GOOGLE ID_TOKEN EN MI ACESS_TOKEN.
-# TODO - MEJORAR LOS CODIGO DE ESTADOS EN LoginCallbackResource
-
 
 class LoginResource(Resource):
+    @swag_from('../docs/login/get.yml')
     def get(self):
         try:
             return self.start_oauth_flow()
 
-        except InvalidAlgorithmError as iae:
-            logging.error(f"InvalidAlgorithmError: {iae}")
-            return make_response(jsonify(INVALID_JWT), 401)
-        except (Exception, ValueError, OAuth2Error) as e:
-            logging.exception(f"Error during login process: {e}\n")
-            return make_response(jsonify(AUTH_ERROR), 500)
+        except OAuth2Error as oauth_err:
+            logging.error(f"OAuth2 error: {oauth_err}")
+            return error_response(
+                error_code=LoginErrorResponse.OAUTH2_ERROR.name,
+                status_code=LoginErrorResponse.OAUTH2_ERROR.value
+                .get("status_code"),
+                message=LoginErrorResponse.OAUTH2_ERROR.value
+                .get("message"),
+            )
+
+        except OAuth2ExternalServiceError as ex_err:
+            logging.error(f"External service error: {ex_err}")
+            return error_response(
+                error_code=LoginErrorResponse.EXTERNAL_SERVICE_ERROR.name,
+                status_code=LoginErrorResponse.EXTERNAL_SERVICE_ERROR.value
+                .get("status_code"),
+                message=LoginErrorResponse.EXTERNAL_SERVICE_ERROR
+                .value.get("message"),
+            )
+
+        except Exception as e:
+            logging.exception(f"Unexpected error during login process: {e}")
+            return error_response(
+                error_code=LoginErrorResponse.UNEXPECTED_ERROR.name,
+                status_code=LoginErrorResponse.UNEXPECTED_ERROR.value
+                .get("status_code"),
+                message=LoginErrorResponse.UNEXPECTED_ERROR
+                .value.get("message"),
+            )
 
     def start_oauth_flow(self):
         openid_conf = self._get_openid_configuration()
-        authorization_url, state = self._generate_authorization_url(openid_conf)
-
+        authorization_url, state = self._generate_authorization_url(
+            openid_conf
+        )
         session[OAUTH_STATE_SESSION] = state
-        logging.info(f"Authorization URL generated: {authorization_url}")
-
+        logging.info("Authorization URL generated")
         return redirect(authorization_url, 302)
 
     def _get_openid_configuration(self):
         openid_conf = oauth2.get_openid_configuration()
-
-        if not openid_conf:
-            raise ValueError("Invalid OpenID config.")
-
-        logging.info(f"OAuth2 Configuration: {openid_conf}")
+        if not isinstance(openid_conf, dict) or not openid_conf:
+            raise OAuth2ExternalServiceError(
+                "Unable to fetch or invalid OpenID configuration from Google.",
+                "INVALID_OPENID_CONF"
+            )
         return openid_conf
 
     def _generate_authorization_url(self, openid_conf):
         authorization_endpoint = openid_conf.get("authorization_endpoint")
-
         if not authorization_endpoint:
-            raise ValueError("Authorization endpoint not found in OpenID configuration.")
-
+            raise OAuth2ExternalServiceError(
+                "Authorization endpoint not found in OpenID configuration.",
+                "MISSING_AUTH_ENDPOINT"
+            )
         oauth_session = oauth2.create_oauth2_session()
-        authorization_url, state = oauth_session.authorization_url(
+        return oauth_session.authorization_url(
             authorization_endpoint,
             access_type="offline",
             prompt="consent"
         )
-        return authorization_url, state
+
 
 class LoginCallbackResource(Resource):
     def get(self):
@@ -90,31 +106,57 @@ class LoginCallbackResource(Resource):
             state = request.args.get("state", "")
             if not self._is_state_valid(state):
                 logging.error(f"Invalid State: {state}")
-                return make_response(jsonify(AUTH_ERROR), 400)
+                return error_response(
+                    error_code=LoginErrorResponse.INVALID_STATE.name,
+                    status_code=LoginErrorResponse.INVALID_STATE.value
+                    .get("status_code"),
+                    message=LoginErrorResponse.INVALID_STATE
+                    .value.get("message"),
+                )
 
             token = self._fetch_oauth_token(request.url, state)
-            logging.info(f"Fetch Token: {token}\n")
-
+            logging.info(f"Fetched Token: {token}")
             user_info = self._verify_and_get_user_info(token)
             jwt_token = self._generate_jwt(user_info)
 
             session.pop(OAUTH_STATE_SESSION, None)
-            return make_response(jsonify({**LOGIN_SUCCESS, "data": {"token": jwt_token}}), 200)
-        except InvalidGrantError as ige:
-            logging.error(f"InvalidGrantError: {ige}")
-            return make_response(jsonify(AUTH_ERROR), 400)
-        except ValueError as ve:
-            logging.error(f"Value Error: {ve}")
-            return make_response(jsonify(AUTH_ERROR), 400)
-        except jwt.PyJWTError as je:
-            logging.error(f"JWT Error: {je}")
-            return make_response(jsonify(AUTH_ERROR), 400)
-        except InsecureTransportError as ite:
-            logging.error(f"InsecureTransportError: {ite}")
-            return make_response(jsonify(AUTH_ERROR), 400)    
+
+            return success_response(
+                message_key=LoginSuccessResponse.LOGIN_SUCCESS.value
+                .get("message"),
+                status_code=LoginSuccessResponse.LOGIN_SUCCESS.value
+                .get("status_code"),
+                data={"token": jwt_token},
+            )
+
+        except OAuth2FlowError as oe:
+            logging.error(f"OAuth Flow Error: {oe}")
+            return error_response(
+                error_code=LoginErrorResponse.OAUTH2_FLOW_ERROR.name,
+                status_code=LoginErrorResponse.OAUTH2_FLOW_ERROR.value
+                .get("status_code"),
+                message=LoginErrorResponse.OAUTH2_FLOW_ERROR
+                .value.get("message")
+            )
+
+        except OAuth2Error as oauth_err:
+            logging.error(f"OAuth2 Error: {oauth_err}")
+            return error_response(
+                error_code=LoginErrorResponse.OAUTH2_ERROR.name,
+                status_code=LoginErrorResponse.OAUTH2_ERROR.value
+                .get("status_code"),
+                message=LoginErrorResponse.OAUTH2_ERROR.value.get("message")
+            )
+
         except Exception as e:
-            logging.exception(f"Error during login callback: {e}")
-            return make_response(jsonify(AUTH_ERROR), 500)
+            logging.exception(f"Unexpected error during login callback: {e}")
+            return error_response(
+                error_code=LoginErrorResponse.UNEXPECTED_ERROR.name,
+                status_code=LoginErrorResponse.UNEXPECTED_ERROR.value
+                .get("status_code"),
+                message=LoginErrorResponse.UNEXPECTED_ERROR
+                .value.get("message")
+            )
 
     def _is_state_valid(self, state):
         oauth_state = session.get(OAUTH_STATE_SESSION, "")
@@ -124,59 +166,59 @@ class LoginCallbackResource(Resource):
         oauth_session = oauth2.create_oauth2_session(state)
         openid_conf = oauth2.get_openid_configuration()
         token_url = openid_conf.get("token_endpoint")
-
         if not token_url:
-            raise ValueError("Token endpoint not found in OpenID configuration.")
+            raise OAuth2FlowError(
+                "Token endpoint not found in OpenID configuration.",
+                "MISSING_TOKEN_ENDPOINT"
+            )
 
-        token = oauth_session.fetch_token(
+        return oauth_session.fetch_token(
             token_url,
             authorization_response=authorization_response,
             client_secret=oauth2.CLIENT_SECRET
         )
-        return token
 
     def _verify_and_get_user_info(self, token):
         id_token = token.get("id_token")
         if not id_token:
-            raise ValueError("Invalid token.")
+            raise OAuth2Error("Invalid token.", "INVALID_ID_TOKEN")
 
         user_info = oauth2.verify_id_token(id_token)
         if not user_info:
-            raise jwt.PyJWTError("Failed to verify ID token.")
+            raise OAuth2Error("Failed to verify ID token.")
+
         return user_info
 
     def _generate_jwt(self, user_info):
         sub = user_info.get("sub")
         email = user_info.get("email")
         exp = user_info.get('exp')
+
         user = db.session.query(User).filter_by(google_id=sub).first()
         if not user:
             user = User(id=uuid.uuid4(), google_id=sub, email=email)
             db.session.add(user)
             db.session.commit()
-        
+
         logging.info(f"User: {user}")
 
         identity = user.google_id
-
         expire_datetime = datetime.fromtimestamp(exp, tz=timezone.utc)
         expires_delta = expire_datetime - datetime.now(timezone.utc)
-
         expires_delta_refresh = timedelta(days=7)
 
-        logging.info(f"Access token will expire on: {expires_delta} (hh:mm:ss)")
-
-        logging.info(f"Refresh token will expire on: {expires_delta_refresh} (days)")
+        logging.info(f"Access token will expire in: {expires_delta}")
+        logging.info(f"Refresh token will expire in: {expires_delta_refresh}")
 
         jwt_token = create_access_token(
-            identity=identity, 
-            expires_delta=expires_delta)
-        
+            identity=identity,
+            expires_delta=expires_delta
+        )
+
         jwt_refresh_token = create_refresh_token(
-            identity=identity, 
+            identity=identity,
             expires_delta=expires_delta_refresh
         )
 
         logging.info(f"Refresh token: {jwt_refresh_token}")
-
         return jwt_token
