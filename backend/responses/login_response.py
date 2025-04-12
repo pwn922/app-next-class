@@ -15,8 +15,7 @@ class LoginErrorResponse(Enum):
         "status_code": 400
     }
     EXTERNAL_SERVICE_ERROR = {
-        "message": "Unable to fetch OpenID configuration "
-        "from external service.",
+        "message": "Unable to fetch information from external service.",
         "status_code": 502
     }
     UNEXPECTED_ERROR = {
