@@ -194,7 +194,7 @@ class LoginCallbackResource(Resource):
         email = user_info.get("email")
         exp = user_info.get('exp')
 
-        user = db.session.query(User).filter_by(google_user_id=sub).first()
+        user = db.session.query(User).filter_by(oidc_sub=sub).first()
         if not user:
             user = User(oidc_sub=sub, email=email)
             db.session.add(user)
