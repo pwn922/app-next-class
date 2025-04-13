@@ -8,7 +8,6 @@ from resources.pavilion import PavilionResource, PavilionListResource
 # from resources.subject import SubjectResource, SubjectListResource
 from resources.schedules import ScheduleResource, ScheduleListResource
 from resources.logout import LogoutResource
-from resources.user import UserResource
 from flask_migrate import Migrate
 from config.config import ConfigFlask
 from database.db import db, init_db
@@ -42,23 +41,35 @@ api.add_resource(UserListResource, '/users/')
 api.add_resource(LoginResource, '/login')
 api.add_resource(LoginCallbackResource, '/login/callback', endpoint='callback')
 api.add_resource(LogoutResource, '/logout')
-#api.add_resource(RefreshTokenResource, '/refresh-token')
+# api.add_resource(RefreshTokenResource, '/refresh-token')
 
 api.add_resource(PavilionListResource, '/pavilions/')
-api.add_resource(PavilionResource, '/pavilions/<uuid:id>', endpoint='pavilions')
+api.add_resource(
+    PavilionResource,
+    '/pavilions/<uuid:id>',
+    endpoint='pavilions'
+)
 # api.add_resource(ClassroomListResource, '/classrooms/')
-# api.add_resource(ClassroomResource, '/classrooms/<uuid:id>', endpoint='classrooms')
+# api.add_resource(
+#   ClassroomResource,
+#   '/classrooms/<uuid:id>',
+#   endpoint='classrooms'
+# )
 # api.add_resource(SubjectListResource, '/subjects/')
 # api.add_resource(SubjectResource, '/subjects/<uuid:id>', endpoint='subjects')
-api.add_resource(ScheduleResource, '/schedules/<uuid:schedule_id>', endpoint='schedules')
+api.add_resource(
+    ScheduleResource,
+    '/schedules/<uuid:schedule_id>',
+    endpoint='schedules'
+)
 api.add_resource(ScheduleListResource, '/schedules/')
 
-#api.add_resource(UserListResource, '/users')
+# api.add_resource(UserListResource, '/users')
 
 from models.pavilion import Pavilion
 # from models.classroom import Classroom
 from models.user import User
-from models.schedule import Schedule  
+from models.schedule import Schedule
 # from models.subject import Subject
 from models.token_blocklist import TokenBlocklist
 
