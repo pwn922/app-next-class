@@ -1,0 +1,19 @@
+// aqui es donde se escoge que pantalla se mostrara
+import React from 'react';
+import { View, Button } from 'react-native';
+
+export default function SelectorPantalla({ pantalla, setPantalla }) {
+  return (
+    <View style={{ flexDirection: 'row', marginTop: 10 }}>
+      {pantalla !== 'horario' && (
+        <Button title="Ver Horario" onPress={() => setPantalla('horario')} color="#FF3B30" />
+      )}
+      {pantalla !== 'mapa' && (
+        <>
+          {pantalla !== 'horario' && <View style={{ width: 10 }} />}
+          <Button title="Ver Mapa" onPress={() => setPantalla('mapa')} color="#FF3B30" />
+        </>
+      )}
+    </View>
+  );
+}
