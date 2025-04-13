@@ -15,4 +15,4 @@ class Subject(Base):
     def __repr__(self):
         return f'<Classroom {self.name}>'
 
-"""  
+"""

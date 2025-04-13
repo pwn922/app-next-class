@@ -1,8 +1,9 @@
-from sqlalchemy import UUID, Column, Integer, String, DateTime, Time, ForeignKey
+from sqlalchemy import UUID, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from models.base import Base
 import uuid
+
 
 class Schedule(Base):
     __tablename__ = 'schedule'
@@ -18,7 +19,11 @@ class Schedule(Base):
         nullable=False
     )
 
-    user_oidc_sub = Column(String(255), ForeignKey('user.oidc_sub', ondelete="CASCADE"), nullable=True)
+    user_oidc_sub = Column(
+        String(255),
+        ForeignKey('user.oidc_sub', ondelete="CASCADE"),
+        nullable=True
+    )
     user = relationship("User", back_populates="schedules")
 
     def __repr__(self):

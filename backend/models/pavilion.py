@@ -1,6 +1,7 @@
-from sqlalchemy import UUID, Column, Integer, String, Float
+from sqlalchemy import UUID, Column, String, Float
 from sqlalchemy.orm import relationship
 from models.base import Base
+
 
 class Pavilion(Base):
     __tablename__ = 'pavilion'
@@ -9,8 +10,12 @@ class Pavilion(Base):
     x = Column(Float, nullable=False)
     y = Column(Float, nullable=False)
 
-    #Relación entre un pabellón y sus salas de clases.
-    classrooms = relationship('Classroom', back_populates='pavilion', cascade="all, delete-orphan")
+    # Relación entre un pabellón y sus salas de clases.
+    classrooms = relationship(
+        'Classroom',
+        back_populates='pavilion',
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f'<Classroom {self.name}>'

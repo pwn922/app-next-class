@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 
 from models.base import Base
 
+
 class TokenBlocklist(Base):
     __tablename__ = 'token_blocklist'
 
