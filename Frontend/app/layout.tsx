@@ -32,8 +32,8 @@ export default function Menu_de_usuario() {//aqui manejamos donde se controlaran
     const cargarDatos = async () => {
       try {
         const horarios = await buscarHorariosPorUsuario(usuario,clave);
-        setHorarioUsuario(horarios || []);
-        setTablaHorario(generarTablaHorario(horarios || []));
+        // setHorarioUsuario(horarios || []);
+        // setTablaHorario(generarTablaHorario(horarios || []));
 
         const coordenadas = await obtenerClasesConCoordenadas(usuario,clave);
         setClasesCoordenadas(coordenadas || []);
