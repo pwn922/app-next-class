@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-# import uuid
 import logging
 
 from flask import request, redirect, session
