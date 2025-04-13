@@ -42,7 +42,7 @@ definitions:
       - x
       - y
     example:
-      nombre: "Updated Pavilion"
+      name: "Updated Pavilion"
       x: 40.0
       y: 20.0
   Pavilion:

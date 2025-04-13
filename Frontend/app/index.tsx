@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const App = () => {
 
   const handleLogin = async () => {
-    const loginUrl = 'https://9a61-179-8-31-61.ngrok-free.app/api/v1/login';
+    const loginUrl = 'https://89fd-179-8-31-61.ngrok-free.app/api/v1/login';
   
     try {
       console.log("Redirigiendo a:", loginUrl);

@@ -36,6 +36,8 @@ class ConfigGoogle:
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 
+    print(GOOGLE_CLIENT_ID)
+    print(GOOGLE_CLIENT_SECRET)
     if not GOOGLE_CLIENT_ID:
         print("Error: GOOGLE_CLIENT_ID is not configured.")
         sys.exit(1)

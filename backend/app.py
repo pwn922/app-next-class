@@ -31,7 +31,11 @@ CORS(app, origins=[
     'https://openidconnect.googleapis.com',
     'https://openidconnect.googleapis.com/v1/userinfo',
     'https://www.googleapis.com',
-    'https://oauth2.googleapis.com/revoke'
+    'https://oauth2.googleapis.com/revoke',
+    'https://192.168.1.81:8081',
+    'https://localhost:5000',
+    "http://192.168.1.100",  
+    "exp://192.168.1.100:19000",  
 ])
 migrate = Migrate(app, db)
 api = Api(app, prefix='/api/v1')

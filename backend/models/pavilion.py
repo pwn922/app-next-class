@@ -10,12 +10,5 @@ class Pavilion(Base):
     x = Column(Float, nullable=False)
     y = Column(Float, nullable=False)
 
-    # Relación entre un pabellón y sus salas de clases.
-    classrooms = relationship(
-        'Classroom',
-        back_populates='pavilion',
-        cascade="all, delete-orphan"
-    )
-
     def __repr__(self):
-        return f'<Classroom {self.name}>'
+        return f'<Pavilion {self.name}>'

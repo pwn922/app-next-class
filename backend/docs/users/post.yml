@@ -16,25 +16,21 @@ responses:
     description: Bad request. Invalid input.
   "500":
     description: Internal server error
+
 definitions:
   UserCreateRequest:
     type: object
     properties:
-      name:
+      oidc_sub:
         type: string
-        description: The user's name.
+        description: The user's OIDC subject.
       email:
         type: string
         format: email
         description: The user's email address.
-      password:
-        type: string
-        description: The user's password.
     required:
-      - name
+      - oidc_sub
       - email
-      - password
     example:
-      name: "jane_doe"
-      email: "jane.doe@example.com"
-      password: "securepassword123"
+      oidc_sub: "google-oauth2|98765432109876543210"
+      email: "new.user@example.com"

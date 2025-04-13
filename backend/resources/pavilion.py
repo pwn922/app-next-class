@@ -30,7 +30,7 @@ class PavilionResource(Resource):
                 status_code=PavilionSuccessResponse.RETRIEVED.value.get("status_code"),
                 data={
                     "id": str(pavilion.id),
-                    "nombre": pavilion.nombre,
+                    "name": pavilion.name,
                     "x": pavilion.x,
                     "y": pavilion.y
                 }
@@ -47,7 +47,7 @@ class PavilionResource(Resource):
     def put(self, id):
         try:
             data = request.get_json()
-            nombre = data.get("nombre")
+            name = data.get("name")
             x = data.get("x")
             y = data.get("y")
 
@@ -59,7 +59,7 @@ class PavilionResource(Resource):
                     message=PavilionErrorResponse.NOT_FOUND.value.get("message")
                 )
 
-            if nombre: pavilion.nombre = nombre
+            if name: pavilion.name = name
             if x is not None: pavilion.x = x
             if y is not None: pavilion.y = y
 
@@ -70,7 +70,7 @@ class PavilionResource(Resource):
                 status_code=PavilionSuccessResponse.UPDATED.value.get("status_code"),
                 data={
                     "id": str(pavilion.id),
-                    "nombre": pavilion.nombre,
+                    "name": pavilion.name,
                     "x": pavilion.x,
                     "y": pavilion.y
                 }
@@ -119,7 +119,7 @@ class PavilionListResource(Resource):
             pavilions = db.session.query(Pavilion).all()
             result = [{
                 "id": str(p.id),
-                "nombre": p.nombre,
+                "name": p.name,
                 "x": p.x,
                 "y": p.y
             } for p in pavilions]
@@ -141,18 +141,18 @@ class PavilionListResource(Resource):
     def post(self):
         try:
             data = request.get_json()
-            nombre = data.get("nombre")
+            name = data.get("name")
             x = data.get("x")
             y = data.get("y")
 
-            if not nombre or x is None or y is None:
+            if not name or x is None or y is None:
                 return error_response(
                     error_code=PavilionErrorResponse.MISSING_FIELDS.name,
                     status_code=PavilionErrorResponse.MISSING_FIELDS.value.get("status_code"),
                     message=PavilionErrorResponse.MISSING_FIELDS.value.get("message")
                 )
 
-            new_pavilion = Pavilion(id=uuid.uuid4(), nombre=nombre, x=x, y=y)
+            new_pavilion = Pavilion(id=uuid.uuid4(), name=name, x=x, y=y)
             db.session.add(new_pavilion)
             db.session.commit()
 
@@ -161,7 +161,7 @@ class PavilionListResource(Resource):
                 status_code=PavilionSuccessResponse.CREATED.value.get("status_code"),
                 data={
                     "id": str(new_pavilion.id),
-                    "nombre": new_pavilion.nombre,
+                    "name": new_pavilion.name,
                     "x": new_pavilion.x,
                     "y": new_pavilion.y
                 }

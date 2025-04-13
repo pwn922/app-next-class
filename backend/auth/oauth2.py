@@ -17,7 +17,8 @@ GOOGLE_DISCOVERY_URL = ConfigGoogle.GOOGLE_DISCOVERY_URL
 
 
 def create_oauth2_session(state=None):
-    redirect_uri = request.host_url.removesuffix("/") + url_for("callback")
+    # redirect_uri = request.host_url.removesuffix("/") + url_for("callback")
+    redirect_uri = "https://89fd-179-8-31-61.ngrok-free.app" + url_for("callback")
     return OAuth2Session(
             client_id=CLIENT_ID,
             scope=GOOGLE_SCOPES,

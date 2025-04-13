@@ -20,7 +20,7 @@ definitions:
   PavilionCreateRequest:
     type: object
     properties:
-      nombre:
+      name:
         type: string
         description: Name of the pavilion
       x:
@@ -34,7 +34,7 @@ definitions:
       - x
       - y
     example:
-      nombre: "Main Pavilion"
+      name: "Main Pavilion"
       x: 34.5
       y: 12.1
   Pavilion:

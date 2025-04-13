@@ -1,12 +1,11 @@
 tags:
   - "User"
 parameters:
-  - name: user_id
+  - name: oidc_sub
     in: path
-    description: ID of the user to delete.
+    description: OIDC subject of the user to delete.
     required: true
     type: string
-    format: uuid
 responses:
   "204":
     description: User deleted successfully. No content.
