@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-import uuid
+# import uuid
 import logging
 
 from flask import request, redirect, session
@@ -194,15 +194,15 @@ class LoginCallbackResource(Resource):
         email = user_info.get("email")
         exp = user_info.get('exp')
 
-        user = db.session.query(User).filter_by(google_id=sub).first()
+        user = db.session.query(User).filter_by(google_user_id=sub).first()
         if not user:
-            user = User(id=uuid.uuid4(), google_id=sub, email=email)
+            user = User(oidc_sub=sub, email=email)
             db.session.add(user)
             db.session.commit()
 
         logging.info(f"User: {user}")
 
-        identity = user.google_id
+        identity = user.oidc_sub
         expire_datetime = datetime.fromtimestamp(exp, tz=timezone.utc)
         expires_delta = expire_datetime - datetime.now(timezone.utc)
         expires_delta_refresh = timedelta(days=7)
