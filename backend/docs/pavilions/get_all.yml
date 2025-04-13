@@ -18,8 +18,14 @@ definitions:
       id:
         type: string
         format: uuid
-      name:
+      nombre:
         type: string
+      x:
+        type: number
+      y:
+        type: number
     example:
       id: "a1b2c3d4-e5f6-7890-abcd-1234567890ef"
-      name: "North Pavilion"
+      nombre: "North Pavilion"
+      x: 34.5
+      y: 12.1

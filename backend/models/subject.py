@@ -1,3 +1,4 @@
+"""
 from sqlalchemy import UUID, Column, Integer, String
 from sqlalchemy.orm import relationship
 from models.base import Base
@@ -14,4 +15,4 @@ class Subject(Base):
     def __repr__(self):
         return f'<Classroom {self.name}>'
 
-    
+"""  

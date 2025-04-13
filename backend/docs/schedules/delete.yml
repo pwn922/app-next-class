@@ -1,15 +1,16 @@
 tags:
   - "Schedule"
+summary: Delete a schedule
 parameters:
-  - name: schedule_id
+  - name: id
     in: path
     required: true
     type: string
     format: uuid
-    description: ID of the schedule to delete
+    description: The ID of the schedule to delete
 responses:
   "204":
-    description: Schedule deleted successfully.
+    description: Schedule deleted successfully
   "404":
     description: Schedule not found
   "500":

@@ -1,3 +1,4 @@
+"""
 from sqlalchemy import UUID, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from models.base import Base
@@ -14,4 +15,4 @@ class Classroom(Base):
 
     def __repr__(self):
         return f'<Classroom {self.number} (ID: {self.id})>'
-
+"""

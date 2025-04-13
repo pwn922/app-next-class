@@ -1,15 +1,16 @@
 tags:
   - "Schedule"
+summary: Get a schedule by ID
 parameters:
-  - name: schedule_id
+  - name: id
     in: path
-    description: ID of the schedule to retrieve.
     required: true
     type: string
     format: uuid
+    description: The ID of the schedule
 responses:
   "200":
-    description: Successful operation
+    description: Schedule found
     schema:
       $ref: "#/definitions/Schedule"
   "404":
@@ -23,29 +24,16 @@ definitions:
       id:
         type: string
         format: uuid
+      departamento:
+        type: string
+      bloque:
+        type: string
+      sala:
+        type: integer
+      dia:
+        type: string
+      asignatura:
+        type: string
       user_id:
         type: string
         format: uuid
-      subject_id:
-        type: string
-        format: uuid
-      classroom_id:
-        type: string
-        format: uuid
-      date:
-        type: string
-        format: date-time
-      start:
-        type: string
-        format: time
-      end:
-        type: string
-        format: time
-    example:
-      id: "123e4567-e89b-12d3-a456-426614174000"
-      user_id: "user-uuid"
-      subject_id: "subject-uuid"
-      classroom_id: "classroom-uuid"
-      date: "2025-04-07T10:00:00Z"
-      start: "10:00:00"
-      end: "12:00:00"

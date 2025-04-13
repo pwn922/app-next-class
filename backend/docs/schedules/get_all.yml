@@ -1,8 +1,10 @@
 tags:
   - "Schedule"
+summary: Get all schedules
+description: Retrieve a list of all schedules.
 responses:
   "200":
-    description: A list of schedules
+    description: A list of schedules.
     schema:
       type: array
       items:

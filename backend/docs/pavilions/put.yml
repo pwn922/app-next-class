@@ -28,8 +28,32 @@ definitions:
   PavilionUpdateRequest:
     type: object
     properties:
-      name:
+      nombre:
         type: string
         description: Updated name of the pavilion
+      x:
+        type: number
+        description: Coordenada X
+      y:
+        type: number
+        description: Coordenada Y
+    required:
+      - nombre
+      - x
+      - y
     example:
-      name: "Updated Pavilion"
+      nombre: "Updated Pavilion"
+      x: 40.0
+      y: 20.0
+  Pavilion:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      nombre:
+        type: string
+      x:
+        type: number
+      y:
+        type: number

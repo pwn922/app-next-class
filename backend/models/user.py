@@ -8,7 +8,12 @@ class User(Base):
     __tablename__ = 'user'
 
     # id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    oidc_sub = Column(String(255), unique=True, nullable=False)
+    oidc_sub = Column(
+        String(255),
+        primary_key=True,
+        unique=True,
+        nullable=False
+    )
     email = Column(String(120), unique=True, nullable=False)
     created_at = Column(
         DateTime,

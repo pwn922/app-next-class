@@ -4,8 +4,8 @@ from flask_restful import Api
 from resources.login import LoginCallbackResource, LoginResource
 from resources.user import UserListResource, UserResource
 from resources.pavilion import PavilionResource, PavilionListResource
-from resources.classroom import ClassroomResource, ClassroomListResource
-from resources.subject import SubjectResource, SubjectListResource
+# from resources.classroom import ClassroomResource, ClassroomListResource
+# from resources.subject import SubjectResource, SubjectListResource
 from resources.schedules import ScheduleResource, ScheduleListResource
 from resources.logout import LogoutResource
 from resources.user import UserResource
@@ -46,20 +46,20 @@ api.add_resource(LogoutResource, '/logout')
 
 api.add_resource(PavilionListResource, '/pavilions/')
 api.add_resource(PavilionResource, '/pavilions/<uuid:id>', endpoint='pavilions')
-api.add_resource(ClassroomListResource, '/classrooms/')
-api.add_resource(ClassroomResource, '/classrooms/<uuid:id>', endpoint='classrooms')
-api.add_resource(SubjectListResource, '/subjects/')
-api.add_resource(SubjectResource, '/subjects/<uuid:id>', endpoint='subjects')
+# api.add_resource(ClassroomListResource, '/classrooms/')
+# api.add_resource(ClassroomResource, '/classrooms/<uuid:id>', endpoint='classrooms')
+# api.add_resource(SubjectListResource, '/subjects/')
+# api.add_resource(SubjectResource, '/subjects/<uuid:id>', endpoint='subjects')
 api.add_resource(ScheduleResource, '/schedules/<uuid:schedule_id>', endpoint='schedules')
 api.add_resource(ScheduleListResource, '/schedules/')
 
 #api.add_resource(UserListResource, '/users')
 
 from models.pavilion import Pavilion
-from models.classroom import Classroom
+# from models.classroom import Classroom
 from models.user import User
 from models.schedule import Schedule  
-from models.subject import Subject
+# from models.subject import Subject
 from models.token_blocklist import TokenBlocklist
 
 swagger = Swagger(app, template=app.config.get('SWAGGER_TEMPLATE'))

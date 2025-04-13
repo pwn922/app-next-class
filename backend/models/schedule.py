@@ -2,21 +2,24 @@ from sqlalchemy import UUID, Column, Integer, String, DateTime, Time, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from models.base import Base
-
+import uuid
 
 class Schedule(Base):
     __tablename__ = 'schedule'
-    id = Column(UUID(as_uuid=True), primary_key=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
-    subject_id = Column(UUID(as_uuid=True), ForeignKey('subject.id', ondelete="CASCADE"), nullable=False)
-    classroom_id = Column(UUID(as_uuid=True), ForeignKey('classroom.id',ondelete="CASCADE"), nullable=False)
-    date = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
-    start = Column(Time, nullable=False)   # Hora de inicio
-    end = Column(Time, nullable=False)     # Hora de término
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    pavilion = Column(String(100), nullable=False)
+    block = Column(String(10), nullable=False)
+    classroom = Column(Integer, nullable=False)
+    day = Column(String(20), nullable=False)
+    subject = Column(String(100), nullable=False)
+    created_at = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        nullable=False
+    )
 
-    user = relationship('User', back_populates='schedules')
-    subject = relationship('Subject', back_populates='schedules')
-    classroom = relationship('Classroom', back_populates='schedules')
+    user_oidc_sub = Column(String(255), ForeignKey('user.oidc_sub', ondelete="CASCADE"), nullable=True)
+    user = relationship("User", back_populates="schedules")
 
     def __repr__(self):
-        return f'<Schedule {self.date} {self.start}-{self.end}>'
+        return f'<Schedule {self.id} {self.day} {self.block} {self.subject}>'

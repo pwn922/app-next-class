@@ -20,10 +20,32 @@ definitions:
   PavilionCreateRequest:
     type: object
     properties:
-      name:
+      nombre:
         type: string
         description: Name of the pavilion
+      x:
+        type: number
+        description: Coordenada X
+      y:
+        type: number
+        description: Coordenada Y
     required:
-      - name
+      - nombre
+      - x
+      - y
     example:
-      name: "Main Pavilion"
+      nombre: "Main Pavilion"
+      x: 34.5
+      y: 12.1
+  Pavilion:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      nombre:
+        type: string
+      x:
+        type: number
+      y:
+        type: number
