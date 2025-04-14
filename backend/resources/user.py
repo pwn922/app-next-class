@@ -11,9 +11,9 @@ logging.basicConfig(level=logging.INFO)
 
 class UserResource(Resource):
     @swag_from('../docs/users/get.yml')
-    def get(self, oidc_sub):
+    def get(self, id):
         try:
-            user = db.session.query(User).filter_by(oidc_sub=oidc_sub).first()
+            user = db.session.query(User).filter_by(id=id).first()
             if not user:
                 return error_response(
                     error_code=UserErrorResponse.NOT_FOUND.name,
@@ -22,7 +22,7 @@ class UserResource(Resource):
                 )
 
             user_obj = {
-                "oidc_sub": user.oidc_sub,
+                "id": user.id,
                 "email": user.email,
                 "created_at": user.created_at.isoformat()
             }
@@ -40,9 +40,9 @@ class UserResource(Resource):
             )
 
     @swag_from('../docs/users/put.yml')
-    def put(self, oidc_sub):
+    def put(self, id):
         try:
-            user = db.session.query(User).filter_by(oidc_sub=oidc_sub).first()
+            user = db.session.query(User).filter_by(id=id).first()
             if not user:
                 return error_response(
                     error_code=UserErrorResponse.NOT_FOUND.name,
@@ -59,7 +59,7 @@ class UserResource(Resource):
                 message_key=UserSuccessResponse.UPDATED.value.get("message"),
                 status_code=UserSuccessResponse.UPDATED.value.get("status_code"),
                 data={
-                    "oidc_sub": user.oidc_sub,
+                    "id": user.id,
                     "email": user.email,
                     "created_at": user.created_at.isoformat()
                 }
@@ -73,9 +73,9 @@ class UserResource(Resource):
             )
 
     @swag_from('../docs/users/delete.yml')
-    def delete(self, oidc_sub):
+    def delete(self, id):
         try:
-            user = db.session.query(User).filter_by(oidc_sub=oidc_sub).first()
+            user = db.session.query(User).filter_by(id=id).first()
             if not user:
                 return error_response(
                     error_code=UserErrorResponse.NOT_FOUND.name,
@@ -106,7 +106,7 @@ class UserListResource(Resource):
             users = db.session.query(User).all()
             result = [
                 {
-                    "oidc_sub": user.oidc_sub,
+                    "id": user.id,
                     "email": user.email,
                     "created_at": user.created_at.isoformat()
                 }
@@ -129,10 +129,10 @@ class UserListResource(Resource):
     def post(self):
         try:
             data = request.json
-            oidc_sub = data.get("oidc_sub")
+            id = data.get("id")
             email = data.get("email")
 
-            if not oidc_sub or not email:
+            if not id or not email:
                 return error_response(
                     error_code=UserErrorResponse.MISSING_FIELDS.name,
                     status_code=UserErrorResponse.MISSING_FIELDS.value.get("status_code"),
@@ -140,7 +140,7 @@ class UserListResource(Resource):
                 )
 
             new_user = User(
-                oidc_sub=oidc_sub,
+                id=id,
                 email=email
             )
 
@@ -151,7 +151,7 @@ class UserListResource(Resource):
                 message_key=UserSuccessResponse.CREATED.value.get("message"),
                 status_code=UserSuccessResponse.CREATED.value.get("status_code"),
                 data={
-                    "oidc_sub": new_user.oidc_sub,
+                    "id": new_user.id,
                     "email": new_user.email,
                     "created_at": new_user.created_at.isoformat()
                 }
