@@ -1,7 +1,8 @@
 from flask import Flask
 from flasgger import Swagger
 from flask_restful import Api
-from resources.login import LoginCallbackResource, LoginResource
+from resources.login import LoginResource
+from resources.register import RegisterResource
 from resources.user import UserListResource, UserResource
 from resources.pavilion import PavilionResource, PavilionListResource
 # from resources.classroom import ClassroomResource, ClassroomListResource
@@ -34,8 +35,8 @@ CORS(app, origins=[
     'https://oauth2.googleapis.com/revoke',
     'https://192.168.1.81:8081',
     'https://localhost:5000',
-    "http://192.168.1.100",  
-    "exp://192.168.1.100:19000",  
+    "http://192.168.1.100",
+    "exp://192.168.1.100:19000",
 ])
 migrate = Migrate(app, db)
 api = Api(app, prefix='/api/v1')
@@ -43,7 +44,7 @@ api = Api(app, prefix='/api/v1')
 api.add_resource(UserResource, '/users/<uuid:user_id>', endpoint='users')
 api.add_resource(UserListResource, '/users/')
 api.add_resource(LoginResource, '/login')
-api.add_resource(LoginCallbackResource, '/login/callback', endpoint='callback')
+api.add_resource(RegisterResource, '/register')
 api.add_resource(LogoutResource, '/logout')
 # api.add_resource(RefreshTokenResource, '/refresh-token')
 
