@@ -2,33 +2,13 @@ from enum import Enum
 
 
 class LoginErrorResponse(Enum):
-    AUTH_ERROR = {
-        "message": "An error occurred during the authentication process.",
-        "status_code": 400
-    }
-    INVALID_STATE = {
-        "message": "Invalid state parameter.",
-        "status_code": 400
-    }
-    OAUTH2_ERROR = {
-        "message": "OAuth2 authorization failed.",
-        "status_code": 400
-    }
-    EXTERNAL_SERVICE_ERROR = {
-        "message": "Unable to fetch information from external service.",
-        "status_code": 502
+    INVALID_CREDENTIALS = {
+        "message": "Invalid email or password.",
+        "status_code": 401
     }
     UNEXPECTED_ERROR = {
-        "message": "Unexpected internal error.",
+        "message": "An unexpected error occurred during login.",
         "status_code": 500
-    }
-    OAUTH2_FLOW_ERROR = {
-        "message": "OAuth2 flow error.",
-        "status_code": 400
-    }
-    INVALID_ID_TOKEN = {
-        "message": "Invalid token.",
-        "status_code": 400
     }
 
 
