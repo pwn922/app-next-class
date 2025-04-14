@@ -4,8 +4,8 @@ import logging
 from flask import request
 from flask_restful import Resource
 from flask_jwt_extended import create_access_token, create_refresh_token
-
-from utils import security
+from flasgger.utils import swag_from
+from utils.security import verify_password
 from responses.login_response import LoginErrorResponse, LoginSuccessResponse
 from utils.responses import error_response, success_response
 
@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 class LoginResource(Resource):
+    @swag_from('../docs/login/post.yml')
     def post(self):
         try:
             data = request.get_json()
@@ -32,10 +33,11 @@ class LoginResource(Resource):
                 )
 
             user = db.session.query(User).filter_by(email=email).first()
-
-            if not user or not security.verify_password(
+            
+            if not user or not verify_password(
                 user.password,
                 password
+                
             ):
                 return error_response(
                     error_code=LoginErrorResponse.INVALID_CREDENTIALS.name,

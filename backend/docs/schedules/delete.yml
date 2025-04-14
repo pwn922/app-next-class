@@ -1,6 +1,10 @@
 tags:
   - "Schedule"
-summary: Delete a schedule
+summary: Delete a schedule for the authenticated user
+description: Deletes a specific schedule belonging to the authenticated user. Requires a valid JWT token.
+security:
+  - bearerAuth: []
+
 parameters:
   - name: id
     in: path
@@ -8,10 +12,18 @@ parameters:
     type: string
     format: uuid
     description: The ID of the schedule to delete
+
 responses:
-  "204":
+  "200":
     description: Schedule deleted successfully
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+  "401":
+    description: Unauthorized - Invalid or missing JWT token
   "404":
-    description: Schedule not found
+    description: Schedule not found or does not belong to the user
   "500":
     description: Internal server error

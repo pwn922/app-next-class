@@ -25,6 +25,19 @@ class ConfigFlask:
             "description": "API to track a student's next class.",
             "version": "1.0.0"
         },
+        "securityDefinitions": {
+            "bearerAuth": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+            }
+        },
+        "security": [
+            {
+                "bearerAuth": []
+            }
+        ]
     }
 
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', os.urandom(24))

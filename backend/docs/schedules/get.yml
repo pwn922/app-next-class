@@ -1,22 +1,37 @@
 tags:
   - "Schedule"
-summary: Get a schedule by ID
+summary: Get a specific schedule for the authenticated user
+description: >
+  Returns a specific schedule associated with the authenticated user, filtered by the schedule ID.
+  Requires a valid JWT token provided in the Authorization header as a Bearer token.
+security:
+  - bearerAuth: []
+
 parameters:
   - name: id
     in: path
+    description: UUID of the schedule to retrieve.
     required: true
     type: string
     format: uuid
-    description: The ID of the schedule
+
 responses:
   "200":
-    description: Schedule found
+    description: Schedule successfully retrieved
     schema:
-      $ref: "#/definitions/Schedule"
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          $ref: "#/definitions/Schedule"
+  "401":
+    description: Unauthorized - Invalid or missing JWT token
   "404":
-    description: Schedule not found
+    description: Schedule not found for this user
   "500":
     description: Internal server error
+
 definitions:
   Schedule:
     type: object
@@ -24,16 +39,24 @@ definitions:
       id:
         type: string
         format: uuid
-      departamento:
+      department:
         type: string
-      bloque:
+      block:
         type: string
-      sala:
-        type: integer
-      dia:
+      room:
         type: string
-      asignatura:
+      day:
+        type: string
+      subject:
         type: string
       user_id:
         type: string
         format: uuid
+    example:
+      id: "b01a3e46-27a2-4ef7-9622-38b2ffb63a51"
+      department: "Engineering"
+      block: "A"
+      room: "301"
+      day: "Monday"
+      subject: "Calculus I"
+      user_id: "a12b3c4d-5678-90ef-ghij-klmnopqrstuv"

@@ -1,11 +1,9 @@
-# register.py
-
 import logging
 
 from flask import request
 from flask_restful import Resource
-from utils.security import generate_password_hash
-
+from utils.security import generate_secure_password
+from flasgger.utils import swag_from
 from responses.register_response import (
     RegisterErrorResponse,
     RegisterSuccessResponse
@@ -19,6 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 class RegisterResource(Resource):
+    @swag_from('../docs/register/post.yml')
     def post(self):
         try:
             data = request.get_json()
@@ -43,7 +42,8 @@ class RegisterResource(Resource):
                     .get("message")
                 )
 
-            hashed_password = generate_password_hash(password)
+            hashed_password = generate_secure_password(password)
+            print(hashed_password)
             new_user = User(email=email, password=hashed_password)
             db.session.add(new_user)
             db.session.commit()

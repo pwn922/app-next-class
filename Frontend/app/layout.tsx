@@ -8,34 +8,32 @@ import HorarioTabla from './components/HorarioTabla';
 import MapaClases from './components/MapaClases';
 import SelectorPantalla from './components/SelectorPantalla';
 import { bloquesHorario, bloques } from './utils/constantes';
-import { generarTablaHorario } from './utils/funciones';
 
+type Clase = {
+  dia: string;
+  bloque: keyof typeof bloquesHorario;
+  minutosInicio?: number;
+  [key: string]: any; 
+};
 
-
-
-
-export default function Menu_de_usuario() {//aqui manejamos donde se controlaran las pantallas de horarios y mapa
+export default function Menu_de_usuario(): JSX.Element {
   const router = useRouter();
-  const { usuario, clave } = useLocalSearchParams();
+  const { usuario, clave } = useLocalSearchParams<{ usuario: string; clave: string }>();
 
-  const [pantalla, setPantalla] = useState('horario');
-  const [clasesCoordenadas, setClasesCoordenadas] = useState([]);
-  const [claseMasCercana, setClaseMasCercana] = useState(null);
+  const [pantalla, setPantalla] = useState<'horario' | 'mapa'>('horario');
+  const [clasesCoordenadas, setClasesCoordenadas] = useState<Clase[]>([]);
+  const [claseMasCercana, setClaseMasCercana] = useState<Clase | null>(null);
 
   const hoy = new Date();
   const diaActual = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()];
   const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
 
   useEffect(() => {
-    if (!usuario) return;
+    if (!usuario || !clave) return;
 
     const cargarDatos = async () => {
       try {
-        const horarios = await buscarHorariosPorUsuario(usuario,clave);
-        // setHorarioUsuario(horarios || []);
-        // setTablaHorario(generarTablaHorario(horarios || []));
-
-        const coordenadas = await obtenerClasesConCoordenadas(usuario,clave);
+        const coordenadas: Clase[] = await obtenerClasesConCoordenadas(usuario, clave);
         setClasesCoordenadas(coordenadas || []);
 
         const clasesHoy = (coordenadas || [])
@@ -45,9 +43,9 @@ export default function Menu_de_usuario() {//aqui manejamos donde se controlaran
             const inicioMin = parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
             return { ...c, minutosInicio: inicioMin };
           })
-          .sort((a, b) => a.minutosInicio - b.minutosInicio);
+          .sort((a, b) => (a.minutosInicio ?? 0) - (b.minutosInicio ?? 0));
 
-        const siguienteClase = clasesHoy.find(c => c.minutosInicio >= horaActualMin);
+        const siguienteClase = clasesHoy.find(c => (c.minutosInicio ?? 0) >= horaActualMin);
         setClaseMasCercana(siguienteClase || null);
       } catch (err) {
         console.error("Error al cargar datos:", err);
@@ -55,10 +53,10 @@ export default function Menu_de_usuario() {//aqui manejamos donde se controlaran
     };
 
     cargarDatos();
-  }, [usuario]);
+  }, [usuario, clave]);
 
   const bloqueActual = bloques.find(b => {
-    const { inicio, fin } = bloquesHorario[b];
+    const { inicio, fin } = bloquesHorario[b as keyof typeof bloquesHorario];
     const inicioMin = parseInt(inicio.split(':')[0]) * 60 + parseInt(inicio.split(':')[1]);
     const finMin = parseInt(fin.split(':')[0]) * 60 + parseInt(fin.split(':')[1]);
     return horaActualMin >= inicioMin && horaActualMin < finMin;

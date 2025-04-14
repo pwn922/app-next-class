@@ -1,12 +1,17 @@
 tags:
   - "Schedule"
-summary: Create a new schedule
+summary: Create a new schedule for the authenticated user
+description: Creates a new schedule entry associated with the authenticated user. Requires a valid JWT token.
+security:
+  - bearerAuth: []
+
 parameters:
   - in: body
     name: body
     required: true
     schema:
       $ref: "#/definitions/ScheduleCreateRequest"
+
 responses:
   "201":
     description: Schedule created successfully
@@ -14,28 +19,56 @@ responses:
       $ref: "#/definitions/Schedule"
   "400":
     description: Invalid input
+  "401":
+    description: Unauthorized - Invalid or missing JWT token
   "500":
     description: Internal server error
+
 definitions:
   ScheduleCreateRequest:
     type: object
     properties:
-      departamento:
+      pavilion:
         type: string
-      bloque:
+      block:
         type: string
-      sala:
-        type: integer
-      dia:
+      classroom:
         type: string
-      asignatura:
+      day:
+        type: string
+      subject:
+        type: string
+    required:
+      - pavilion
+      - block
+      - classroom
+      - day
+      - subject
+
+  Schedule:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      pavilion:
+        type: string
+      block:
+        type: string
+      classroom:
+        type: string
+      day:
+        type: string
+      subject:
         type: string
       user_id:
         type: string
         format: uuid
-    required:
-      - departamento
-      - bloque
-      - sala
-      - dia
-      - asignatura
+    example:
+      id: "b01a3e46-27a2-4ef7-9622-38b2ffb63a51"
+      pavilion: "Engineering"
+      block: "A"
+      classroom: "301"
+      day: "Monday"
+      subject: "Calculus I"
+      user_id: "a12b3c4d-5678-90ef-ghij-klmnopqrstuv"

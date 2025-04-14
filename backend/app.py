@@ -41,11 +41,17 @@ CORS(app, origins=[
 migrate = Migrate(app, db)
 api = Api(app, prefix='/api/v1')
 
-api.add_resource(UserResource, '/users/<uuid:user_id>', endpoint='users')
+api.add_resource(UserResource, '/user')
 api.add_resource(UserListResource, '/users/')
+api.add_resource(
+    ScheduleResource,
+    '/user/schedules/<uuid:id>'
+)
+api.add_resource(ScheduleListResource, '/user/schedules/')
 api.add_resource(LoginResource, '/login')
 api.add_resource(RegisterResource, '/register')
 api.add_resource(LogoutResource, '/logout')
+
 # api.add_resource(RefreshTokenResource, '/refresh-token')
 
 api.add_resource(PavilionListResource, '/pavilions/')
@@ -62,12 +68,7 @@ api.add_resource(
 # )
 # api.add_resource(SubjectListResource, '/subjects/')
 # api.add_resource(SubjectResource, '/subjects/<uuid:id>', endpoint='subjects')
-api.add_resource(
-    ScheduleResource,
-    '/schedules/<uuid:schedule_id>',
-    endpoint='schedules'
-)
-api.add_resource(ScheduleListResource, '/schedules/')
+
 
 # api.add_resource(UserListResource, '/users')
 

@@ -2,7 +2,7 @@ import { validarCredencialesOffline, buscarHorariosPorUsuarioOffline, obtenerCla
 import { enviarCredencialesAlBackend, buscarHorariosPorUsuarioAlBackend, obtenerClasesConCoordenadasAlBackend , agregarCursoBackend, eliminarCursoBackend, obtenerNombresDepartamentosBackend } from './conexion_back/conexion';
 
 
-
+/*
 export async function validarCredenciales(usuario, clave) {
   try {
     const data = await enviarCredencialesAlBackend(usuario, clave);
@@ -12,7 +12,7 @@ export async function validarCredenciales(usuario, clave) {
     return validarCredencialesOffline(usuario, clave);
   }
 }
-
+*/
 export async function buscarHorariosPorUsuario(usuario, clave) {
   try {
     const data = await buscarHorariosPorUsuarioAlBackend(usuario, clave);

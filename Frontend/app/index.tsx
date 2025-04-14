@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, Button, ActivityIndicator } from 'react-native';
-
-import { BACKEND_URL } from '@env';
-
-console.log(BACKEND_URL);
-
+import { saveTokens, getTokens, clearTokens } from '../storage/storage';
+import { LOGIN_V1 } from '@/constant';
+import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -14,37 +13,57 @@ export default function LoginScreen() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        const loadTokens = async () => {
+            const { accessToken, refreshToken } = await getTokens();
+            if (accessToken && refreshToken) {
+                setAccessToken(accessToken);
+                setRefreshToken(refreshToken);
+            }
+        };
+        loadTokens();
+    }, []);
+
     const handleLogin = async () => {
         setLoading(true);
         setErrorMessage(null);
 
         try {
-            const response = await fetch(`${BACKEND_URL}/login`, {
+            const response = await fetch(`${LOGIN_V1}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    email: email,
-                    password: password,
+                    email,
+                    password,
                 }),
             });
 
             const data = await response.json();
 
             if (response.ok && data?.data?.access_token && data?.data?.refresh_token) {
+                await saveTokens(data.data.access_token, data.data.refresh_token);
                 setAccessToken(data.data.access_token);
                 setRefreshToken(data.data.refresh_token);
+                router.push('/layout');
             } else {
                 throw new Error(data?.message || 'Login failed');
             }
-
         } catch (error: any) {
-            console.error('Login error:', error);
+            //console.error('Login error:', error);
             setErrorMessage(error.message);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleLogout = async () => {
+        await clearTokens();
+        setAccessToken(null);
+        setRefreshToken(null);
+        setEmail('');
+        setPassword('');
     };
 
     return (
@@ -53,34 +72,37 @@ export default function LoginScreen() {
 
             {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
 
-            <TextInput
-                style={styles.input}
-                placeholder="Correo electrónico"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Contraseña"
-                secureTextEntry={true}
-                value={password}
-                onChangeText={setPassword}
-            />
+            {!accessToken ? (
+                <>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Correo electrónico"
+                        keyboardType="email-address"
+                        value={email}
+                        onChangeText={setEmail}
+                        autoCapitalize="none"
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Contraseña"
+                        secureTextEntry={true}
+                        value={password}
+                        onChangeText={setPassword}
+                    />
 
-            {loading ? (
-                <ActivityIndicator size="large" />
-            ) : accessToken ? (
+                    {loading ? (
+                        <ActivityIndicator size="large" />
+                    ) : (
+                        <Button title="Iniciar sesión" onPress={handleLogin} />
+                    )}
+                </>
+            ) : (
                 <View>
                     <Text style={styles.success}>¡Inicio de sesión exitoso!</Text>
                     <Text>Access Token: {accessToken.slice(0, 20)}...</Text>
                     <Text>Refresh Token: {refreshToken?.slice(0, 20)}...</Text>
+                    <Button title="Cerrar sesión" onPress={handleLogout} />
                 </View>
-            ) : (
-                <>
-                    <Button title="Iniciar sesión" onPress={handleLogin} />
-                </>
             )}
         </View>
     );

@@ -1,18 +1,19 @@
 tags:
   - "User"
 parameters:
-  - name: oidc_sub
+  - name: id
     in: path
-    description: OIDC subject of the user to retrieve.
+    description: UUID of the user to retrieve.
     required: true
     type: string
+    format: uuid
 responses:
   "200":
     description: Successful operation
     schema:
       $ref: "#/definitions/User"
   "400":
-    description: Invalid oidc_sub supplied
+    description: Invalid UUID supplied
   "404":
     description: User not found
   "500":
@@ -22,9 +23,10 @@ definitions:
   User:
     type: object
     properties:
-      oidc_sub:
+      id:
         type: string
-        description: The user's unique OIDC subject.
+        format: uuid
+        description: The user's UUID.
       email:
         type: string
         format: email
@@ -32,7 +34,8 @@ definitions:
       created_at:
         type: string
         format: date-time
+        description: Timestamp when the user was created.
     example:
-      oidc_sub: "google-oauth2|123456789012345678901"
+      id: "b01a3e46-27a2-4ef7-9622-38b2ffb63a51"
       email: "john.doe@example.com"
-      created_at: "2024-04-12T14:30:00Z"
+      created_at: "2025-04-12T14:30:00Z"

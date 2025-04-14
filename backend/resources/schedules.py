@@ -1,5 +1,6 @@
 import uuid
 import logging
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource, request
 from flasgger.utils import swag_from
 from utils.responses import success_response, error_response
@@ -11,10 +12,15 @@ logging.basicConfig(level=logging.INFO)
 
 
 class ScheduleResource(Resource):
+    @jwt_required()
     @swag_from('../docs/schedules/get.yml')
     def get(self, id):
         try:
-            schedule = db.session.query(Schedule).filter_by(id=id).first()
+            user_id = get_jwt_identity()
+            logging.info(f"user_id: {user_id}, schedule_id: {id}")
+
+            schedule = db.session.query(Schedule).filter_by(id=id, user_id=user_id).first()
+
             if not schedule:
                 return error_response(
                     error_code=ScheduleErrorResponse.NOT_FOUND.name,
@@ -27,11 +33,11 @@ class ScheduleResource(Resource):
                 status_code=ScheduleSuccessResponse.RETRIEVED.value.get("status_code"),
                 data={
                     "id": str(schedule.id),
-                    "departamento": schedule.departamento,
-                    "bloque": schedule.bloque,
-                    "sala": schedule.sala,
-                    "dia": schedule.dia,
-                    "asignatura": schedule.asignatura,
+                    "pavilion": schedule.pavilion,
+                    "block": schedule.block,
+                    "classroom": schedule.classroom,
+                    "day": schedule.day,
+                    "subject": schedule.subject,
                     "user_id": str(schedule.user_id) if schedule.user_id else None
                 }
             )
@@ -43,11 +49,13 @@ class ScheduleResource(Resource):
                 message=ScheduleErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
 
+    @jwt_required()
     @swag_from('../docs/schedules/put.yml')
     def put(self, id):
         try:
+            user_id = get_jwt_identity()
             data = request.get_json()
-            schedule = db.session.query(Schedule).filter_by(id=id).first()
+            schedule = db.session.query(Schedule).filter_by(id=id, user_id=user_id).first()
             if not schedule:
                 return error_response(
                     error_code=ScheduleErrorResponse.NOT_FOUND.name,
@@ -55,7 +63,7 @@ class ScheduleResource(Resource):
                     message=ScheduleErrorResponse.NOT_FOUND.value.get("message")
                 )
 
-            for field in ['departamento', 'bloque', 'sala', 'dia', 'asignatura', 'user_id']:
+            for field in ['pavilion', 'block', 'classroom', 'day', 'subject']:
                 if field in data:
                     setattr(schedule, field, data[field])
 
@@ -66,11 +74,11 @@ class ScheduleResource(Resource):
                 status_code=ScheduleSuccessResponse.UPDATED.value.get("status_code"),
                 data={
                     "id": str(schedule.id),
-                    "departamento": schedule.departamento,
-                    "bloque": schedule.bloque,
-                    "sala": schedule.sala,
-                    "dia": schedule.dia,
-                    "asignatura": schedule.asignatura,
+                    "pavilion": schedule.pavilion,
+                    "block": schedule.block,
+                    "classroom": schedule.classroom,
+                    "day": schedule.day,
+                    "subject": schedule.subject,
                     "user_id": str(schedule.user_id) if schedule.user_id else None
                 }
             )
@@ -83,10 +91,12 @@ class ScheduleResource(Resource):
                 message=ScheduleErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
 
+    @jwt_required()
     @swag_from('../docs/schedules/delete.yml')
     def delete(self, id):
         try:
-            schedule = db.session.query(Schedule).filter_by(id=id).first()
+            user_id = get_jwt_identity()
+            schedule = db.session.query(Schedule).filter_by(id=id, user_id=user_id).first()
             if not schedule:
                 return error_response(
                     error_code=ScheduleErrorResponse.NOT_FOUND.name,
@@ -112,17 +122,19 @@ class ScheduleResource(Resource):
 
 
 class ScheduleListResource(Resource):
+    @jwt_required()
     @swag_from('../docs/schedules/get_all.yml')
     def get(self):
         try:
-            schedules = db.session.query(Schedule).all()
+            user_id = get_jwt_identity()
+            schedules = db.session.query(Schedule).filter_by(user_id=user_id).all()
             result = [{
                 "id": str(s.id),
-                "departamento": s.departamento,
-                "bloque": s.bloque,
-                "sala": s.sala,
-                "dia": s.dia,
-                "asignatura": s.asignatura,
+                "pavilion": s.pavilion,
+                "block": s.block,
+                "classroom": s.classroom,
+                "day": s.day,
+                "subject": s.subject,
                 "user_id": str(s.user_id) if s.user_id else None
             } for s in schedules]
 
@@ -139,11 +151,13 @@ class ScheduleListResource(Resource):
                 message=ScheduleErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
 
+    @jwt_required()
     @swag_from('../docs/schedules/post.yml')
     def post(self):
         try:
+            user_id = get_jwt_identity()
             data = request.get_json()
-            required_fields = ['departamento', 'bloque', 'sala', 'dia', 'asignatura']
+            required_fields = ['pavilion', 'block', 'classroom', 'day', 'subject']
             if not all(field in data for field in required_fields):
                 return error_response(
                     error_code=ScheduleErrorResponse.MISSING_FIELDS.name,
@@ -153,12 +167,12 @@ class ScheduleListResource(Resource):
 
             new_schedule = Schedule(
                 id=uuid.uuid4(),
-                departamento=data['departamento'],
-                bloque=data['bloque'],
-                sala=data['sala'],
-                dia=data['dia'],
-                asignatura=data['asignatura'],
-                user_id=data.get('user_id')
+                pavilion=data['pavilion'],
+                block=data['block'],
+                classroom=data['classroom'],
+                day=data['day'],
+                subject=data['subject'],
+                user_id=user_id
             )
             db.session.add(new_schedule)
             db.session.commit()
@@ -168,11 +182,11 @@ class ScheduleListResource(Resource):
                 status_code=ScheduleSuccessResponse.CREATED.value.get("status_code"),
                 data={
                     "id": str(new_schedule.id),
-                    "departamento": new_schedule.departamento,
-                    "bloque": new_schedule.bloque,
-                    "sala": new_schedule.sala,
-                    "dia": new_schedule.dia,
-                    "asignatura": new_schedule.asignatura,
+                    "pavilion": new_schedule.pavilion,
+                    "block": new_schedule.block,
+                    "classroom": new_schedule.classroom,
+                    "day": new_schedule.day,
+                    "subject": new_schedule.subject,
                     "user_id": str(new_schedule.user_id) if new_schedule.user_id else None
                 }
             )

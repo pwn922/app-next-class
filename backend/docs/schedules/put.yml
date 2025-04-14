@@ -1,6 +1,10 @@
 tags:
   - "Schedule"
-summary: Update an existing schedule
+summary: Update an existing schedule for the authenticated user
+description: Updates a specific schedule that belongs to the authenticated user. Requires a valid JWT token.
+security:
+  - bearerAuth: []
+
 parameters:
   - name: id
     in: path
@@ -13,30 +17,62 @@ parameters:
     required: true
     schema:
       $ref: "#/definitions/ScheduleUpdateRequest"
+
 responses:
   "200":
     description: Schedule updated successfully
     schema:
-      $ref: "#/definitions/Schedule"
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          $ref: "#/definitions/Schedule"
   "400":
     description: Invalid input
+  "401":
+    description: Unauthorized - Invalid or missing JWT token
   "404":
-    description: Schedule not found
+    description: Schedule not found or does not belong to the user
   "500":
     description: Internal server error
+
 definitions:
   ScheduleUpdateRequest:
     type: object
     properties:
-      departamento:
+      pavilion:
         type: string
-      bloque:
+      block:
         type: string
-      sala:
+      classroom:
         type: integer
-      dia:
+      day:
         type: string
-      asignatura:
+      subject:
+        type: string
+    example:
+      pavilion: "Engineering"
+      block: "B"
+      classroom: 204
+      day: "Tuesday"
+      subject: "Physics II"
+
+  Schedule:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      pavilion:
+        type: string
+      block:
+        type: string
+      classroom:
+        type: string
+      day:
+        type: string
+      subject:
         type: string
       user_id:
         type: string

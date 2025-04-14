@@ -1,38 +1,42 @@
 tags:
   - "Auth"
-summary: Login with email and password
+summary: Register a new user
 parameters:
   - in: body
     name: body
     required: true
     schema:
-      $ref: "#/definitions/LoginRequest"
+      $ref: "#/definitions/RegisterRequest"
 responses:
-  "200":
-    description: Login successful
+  "201":
+    description: Registration successful
     schema:
-      $ref: "#/definitions/LoginResponse"
-  "401":
-    description: Invalid email or password
+      $ref: "#/definitions/RegisterResponse"
+  "400":
+    description: Missing email or password
+    schema:
+      $ref: "#/definitions/ErrorResponse"
+  "409":
+    description: Email already exists
     schema:
       $ref: "#/definitions/ErrorResponse"
   "500":
-    description: Unexpected error during login
+    description: Unexpected error during registration
     schema:
       $ref: "#/definitions/ErrorResponse"
 
 definitions:
-  LoginRequest:
+  RegisterRequest:
     type: object
     properties:
       email:
         type: string
         format: email
-        description: Email address used for login
+        description: Email address for the new user
       password:
         type: string
         format: password
-        description: Password for the account
+        description: Password for the new user
     required:
       - email
       - password
@@ -40,28 +44,26 @@ definitions:
       email: "john.doe@example.com"
       password: "secret123"
 
-  LoginResponse:
+  RegisterResponse:
     type: object
     properties:
       message:
         type: string
-        example: "Login successful."
+        example: "Registration successful."
       data:
         type: object
         properties:
-          access_token:
+          email:
             type: string
-            description: JWT access token
-          refresh_token:
-            type: string
-            description: JWT refresh token
+            format: email
+            description: Registered user email
 
   ErrorResponse:
     type: object
     properties:
       message:
         type: string
-        example: "Invalid email or password."
+        example: "An account with this email address already exists."
       error_code:
         type: string
-        example: "INVALID_CREDENTIALS"
+        example: "EMAIL_ALREADY_EXISTS"
