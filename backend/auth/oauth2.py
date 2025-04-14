@@ -1,7 +1,8 @@
+"""
 from requests_oauthlib import OAuth2Session
 
 from config.config import ConfigGoogle
-from flask_restful import url_for, request
+from flask_restful import url_for
 import requests
 import jwt
 from jwt.algorithms import RSAAlgorithm
@@ -14,11 +15,13 @@ CLIENT_SECRET = ConfigGoogle.GOOGLE_CLIENT_SECRET
 CLIENT_ID = ConfigGoogle.GOOGLE_CLIENT_ID
 GOOGLE_SCOPES = ConfigGoogle.GOOGLE_SCOPES
 GOOGLE_DISCOVERY_URL = ConfigGoogle.GOOGLE_DISCOVERY_URL
+GOOGLE_REDIRECT_URI = ConfigGoogle.GOOGLE_REDIRECT_URI
 
 
 def create_oauth2_session(state=None):
     # redirect_uri = request.host_url.removesuffix("/") + url_for("callback")
-    redirect_uri = "https://89fd-179-8-31-61.ngrok-free.app" + url_for("callback")
+    redirect_uri = GOOGLE_REDIRECT_URI + url_for("callback")
+    logging.info(f"redirect_uri {redirect_uri}\n")
     return OAuth2Session(
             client_id=CLIENT_ID,
             scope=GOOGLE_SCOPES,
@@ -114,3 +117,4 @@ def verify_id_token(token):
     except Exception as e:
         logging.exception(f"Unexpected error verifying token: {e}")
         return None
+"""
