@@ -34,7 +34,7 @@ export default function HomeScreen() {
     blackbox.setClave(clave);
 
     try {
-      const resultado = await validarCredenciales(blackbox.getUsuario(), blackbox.getClave());
+      const resultado = await validarCredenciales(blackbox.getUsuario(), resultado );
       if (resultado === 2) {
         setMensajeError("Usuario incorrecto");
       } else if (resultado === 3) {
@@ -45,7 +45,7 @@ export default function HomeScreen() {
           setMensajeError('');
           router.push({
             pathname: '/layout',
-            params: { usuario: blackbox.getUsuario(), clave: blackbox.getClave() }
+            params: { usuario: blackbox.getUsuario(), clave: resultado }
           });
         }
         else {
