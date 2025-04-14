@@ -19,9 +19,9 @@ class Schedule(Base):
         nullable=False
     )
 
-    user_oidc_sub = Column(
-        String(255),
-        ForeignKey('user.oidc_sub', ondelete="CASCADE"),
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey('user.id', ondelete="CASCADE"),
         nullable=True
     )
     user = relationship("User", back_populates="schedules")
