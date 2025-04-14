@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, Button, ActivityIndicator } from 'react-native';
 
-const BACKEND_URL = 'https://41d8-179-60-68-176.ngrok-free.app/api/v1';
+import { BACKEND_URL } from '@env';
+
+console.log(BACKEND_URL);
+
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
