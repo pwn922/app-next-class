@@ -33,7 +33,8 @@ export default function Menu_de_usuario(): JSX.Element {
 
     const cargarDatos = async () => {
       try {
-        const coordenadas: Clase[] = await obtenerClasesConCoordenadas(usuario, clave);
+        // para user 
+        const coordenadas: Clase[] = await obtenerClasesConCoordenadas();
         setClasesCoordenadas(coordenadas || []);
 
         const clasesHoy = (coordenadas || [])

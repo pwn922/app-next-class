@@ -89,7 +89,7 @@ let  horarios = [
   { usuario: "paula.vera@alumnos.ucn.cl", departamento: "g6", bloque: "C", sala: 1004, dia: "lunes", asignatura: "Ciencias" }
 ];
 
-export function validarCredencialesOffline(usuario, clave) {
+export function validarCredencialesOffline(usuario:string, clave:string) {
   const usuarioEncontrado = usuariosPredeterminados.find(u => u.usuario === usuario);
 
   if (!usuarioEncontrado) return 2; // Usuario incorrecto
@@ -98,11 +98,11 @@ export function validarCredencialesOffline(usuario, clave) {
   return 1; // Credenciales correctas, el usuario es el correcto
 }
 
-export function buscarHorariosPorUsuarioOffline(usuario) {
+export function buscarHorariosPorUsuarioOffline(usuario:string) {
   return horarios.filter(h => h.usuario === usuario);
 }
 
-export function obtenerClasesConCoordenadasOffline(usuario) {
+export function obtenerClasesConCoordenadasOffline(usuario:string) {
   return horarios
     .filter(h => h.usuario === usuario)
     .map(h => {
@@ -119,12 +119,12 @@ export function obtenerClasesConCoordenadasOffline(usuario) {
     });
 }
 
-export function agregarCursoOffline(usuario, curso) {
+export function agregarCursoOffline(usuario:string, curso:any) {
   horarios.push({ usuario, ...curso });  
   return { ok: true };
 }
 
-export function eliminarCursoOffline(usuario, curso) {
+export function eliminarCursoOffline(usuario:string, curso:any) {
   horarios = horarios.filter(
     h => !(h.usuario === usuario && h.dia === curso.dia && h.bloque === curso.bloque)
   );
