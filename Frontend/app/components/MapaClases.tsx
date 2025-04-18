@@ -2,21 +2,37 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image } from 'react-native';
 import { Svg, Image as SvgImage } from 'react-native-svg';
-import { bloquesHorario, bloques } from '../utils/constantes';
+import { bloquesHorario, bloques, ClaseConCoordenadas, ClaseConMinutos, Dia, Bloque } from '../utils/constantes';
 import { obtenerClasesConCoordenadas } from '../src/validacion';
 
-export default function MapaClases({ usuario, clave }) {
-  const [clasesCoordenadas, setClasesCoordenadas] = useState([]);
-  const [claseMasCercana, setClaseMasCercana] = useState(null);
+export default function MapaClases() {
+  
+  const [clasesCoordenadas, setClasesCoordenadas] = useState<ClaseConCoordenadas[]>([]);
+  const [claseMasCercana, setClaseMasCercana] = useState<ClaseConMinutos | null>(null);
+
   const escalaX = 3;
   const escalaY = 3;
+
+  const hoy = new Date();
+  const diaActual: Dia = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()] as Dia;
+  const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
+
+  // Bloque actual y siguiente bloque
+  const bloqueActual = bloques.find(b => {
+    const { inicio, fin } = bloquesHorario[b];
+    const inicioMin = parseInt(inicio.split(':')[0]) * 60 + parseInt(inicio.split(':')[1]);
+    const finMin = parseInt(fin.split(':')[0]) * 60 + parseInt(fin.split(':')[1]);
+    return horaActualMin >= inicioMin && horaActualMin < finMin;
+  });
+
+  const indiceBloqueSiguiente = bloqueActual ? bloques.indexOf(bloqueActual) + 1 : -1;
+  const siguienteBloque: Bloque | null = bloques[indiceBloqueSiguiente] || null;
+
+  // Carga y procesamiento de clases
   useEffect(() => {
-    const hoy = new Date();
-    const diaActual = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()];
-    const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
     const cargarDatosMapa = async () => {
       try {
-        const coordenadas = await obtenerClasesConCoordenadas(usuario, clave);
+        const coordenadas = await obtenerClasesConCoordenadas();
         setClasesCoordenadas(coordenadas || []);
 
         const clasesHoy = (coordenadas || [])
@@ -36,18 +52,8 @@ export default function MapaClases({ usuario, clave }) {
     };
 
     cargarDatosMapa();
-  }, [usuario]);
-  const hoy = new Date();
-  const diaActual = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()];
-  const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
-  const bloqueActual = bloques.find(b => {
-    const { inicio, fin } = bloquesHorario[b];
-    const inicioMin = parseInt(inicio.split(':')[0]) * 60 + parseInt(inicio.split(':')[1]);
-    const finMin = parseInt(fin.split(':')[0]) * 60 + parseInt(fin.split(':')[1]);
-    return horaActualMin >= inicioMin && horaActualMin < finMin;
-  });
-  const indiceBloqueSiguiente = bloqueActual ? bloques.indexOf(bloqueActual) + 1 : -1;
-  const siguienteBloque = bloques[indiceBloqueSiguiente] || null;
+  }, []);
+
   return (
     <View style={{ marginTop: 10, borderWidth: 1, borderColor: 'white' }}>
       <Text style={{ color: 'white', fontWeight: 'bold', marginBottom: 5, textAlign: 'center' }}>
@@ -81,15 +87,19 @@ export default function MapaClases({ usuario, clave }) {
         {clasesCoordenadas.map((clase, index) => {
           let gif = require('../src/verde.gif');
           const bloque = bloquesHorario[clase.bloque];
+
           if (bloque && clase.dia === diaActual) {
             const minutosInicio =
               parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
+
             const esClaseMasCercana =
               claseMasCercana &&
               clase.bloque === claseMasCercana.bloque &&
               clase.x === claseMasCercana.x &&
               clase.y === claseMasCercana.y;
+
             const esSiguienteBloque = clase.bloque === siguienteBloque;
+
             if (esClaseMasCercana) {
               gif = require('../src/rojo.gif');
             } else if (esSiguienteBloque) {

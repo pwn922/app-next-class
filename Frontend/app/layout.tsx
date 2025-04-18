@@ -18,7 +18,7 @@ type Clase = {
 
 export default function Menu_de_usuario(): JSX.Element {
   const router = useRouter();
-  const { usuario, clave } = useLocalSearchParams<{ usuario: string; clave: string }>();
+  //const { usuario, clave } = useLocalSearchParams<{ usuario: string; clave: string }>();
 
   const [pantalla, setPantalla] = useState<'horario' | 'mapa'>('horario');
   const [clasesCoordenadas, setClasesCoordenadas] = useState<Clase[]>([]);
@@ -29,7 +29,7 @@ export default function Menu_de_usuario(): JSX.Element {
   const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
 
   useEffect(() => {
-    if (!usuario || !clave) return;
+    //if (!usuario || !clave) return;
 
     const cargarDatos = async () => {
       try {
@@ -54,7 +54,7 @@ export default function Menu_de_usuario(): JSX.Element {
     };
 
     cargarDatos();
-  }, [usuario, clave]);
+  }, []);
 
   const bloqueActual = bloques.find(b => {
     const { inicio, fin } = bloquesHorario[b as keyof typeof bloquesHorario];
@@ -70,19 +70,21 @@ export default function Menu_de_usuario(): JSX.Element {
     <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: '#8B4000', padding: 20, alignItems: 'center' }}>
       <View style={{ alignItems: 'center', marginBottom: 20 }}>
         <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white' }}>Datos de BlackBox</Text>
-        <Text style={{ fontSize: 18, color: 'white' }}>Usuario: {usuario}</Text>
+        <Text style={{ fontSize: 18, color: 'white' }}>Usuario: {"falta el usuario"}</Text>
 
         <SelectorPantalla pantalla={pantalla} setPantalla={setPantalla} />
       </View>
 
       {pantalla === 'horario' && (
         <ScrollView horizontal contentContainerStyle={{ alignItems: 'center', justifyContent: 'center' }}>
-          <HorarioTabla usuario={usuario} clave={clave} />
+          {/*<HorarioTabla usuario={} clave={} />*/}
+          <HorarioTabla/>
         </ScrollView>
       )}
-
+      {/*<MapaClases usuario={} clave={} />*/}
       {pantalla === 'mapa' && (
-        <MapaClases usuario={usuario} clave={clave} />
+        
+        <MapaClases/>
       )}
 
       <View style={{ marginTop: 20 }}>

@@ -1,17 +1,18 @@
 //Aqui se maneja la talba del horario, ademas se agregan cursos  o eliminan respectivamente
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, TextInput, Alert, TouchableOpacity, ScrollView } from 'react-native';
-import { bloquesHorario, bloques, dias } from '../utils/constantes';
+import { bloquesHorario, bloques, dias, TablaHorario } from '../utils/constantes';
 import { agregarCurso, eliminarCurso ,buscarHorariosPorUsuario, obtenerNombresDepartamentos} from '../src/validacion';
 import { generarTablaHorario } from '../utils/funciones';
 
-export default function HorarioTabla({ usuario, clave }) {
-  const [tablaHorario, setTablaHorario] = useState({});
+export default function HorarioTabla({  }) {
+
+  const [tablaHorario, setTablaHorario] = useState<TablaHorario>({});
   const [msg, setMsg] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarEliminar, setMostrarEliminar] = useState(false);
-  const [departamentos, setDepartamentos] = useState([]);
-
+  const [departamentos, setDepartamentos] = useState<string[]>([]);
+  const [usuario, setUsuario] = useState("");
   const [nuevoCurso, setNuevoCurso] = useState({
     bloque: 'A',
     dia: 'lunes',
@@ -21,10 +22,10 @@ export default function HorarioTabla({ usuario, clave }) {
   });
   useEffect(() => {
     const cargarHorario = async () => {
-      if (!usuario) return;
+      //if (!usuario) return;
 
       try {
-        const horarios = await buscarHorariosPorUsuario(usuario, clave);
+        const horarios = await buscarHorariosPorUsuario();
         const tabla = generarTablaHorario(horarios);
         setTablaHorario(tabla);
       } catch (err) {
@@ -33,11 +34,13 @@ export default function HorarioTabla({ usuario, clave }) {
       }
     };
     cargarHorario();
-  }, [usuario]);
+
+  }, []);
+  
   useEffect(() => {
     const cargarDepartamentos = async () => {
       try {
-        const departamentos = await obtenerNombresDepartamentos( clave);
+        const departamentos = await obtenerNombresDepartamentos( );
         setDepartamentos(departamentos || []);
       } catch (err) {
         console.error('Error al cargar departamentos:', err);
@@ -47,9 +50,9 @@ export default function HorarioTabla({ usuario, clave }) {
     cargarDepartamentos();
   }, []);
   const handleAgregar = async () => {
-    const res = await agregarCurso(usuario, nuevoCurso, clave);
+    const res = await agregarCurso(nuevoCurso);
     if (res.ok) {
-      const horarios = await buscarHorariosPorUsuario(usuario, clave);
+      const horarios = await buscarHorariosPorUsuario( );
       setTablaHorario(generarTablaHorario(horarios));
       setMsg('Curso agregado!');
       setNuevoCurso({ ...nuevoCurso, asignatura: '' });
@@ -58,7 +61,7 @@ export default function HorarioTabla({ usuario, clave }) {
       setMsg('Error al agregar el curso');
     }
   };
-  const handleEliminarCurso = async (bloque, dia, asignatura) => {
+  const handleEliminarCurso = async (bloque:string, dia:string, asignatura:string) => {
     const curso = {
       bloque,
       dia,
@@ -66,9 +69,9 @@ export default function HorarioTabla({ usuario, clave }) {
       sala: 999,
       departamento: 'test',
     };
-    const res = await eliminarCurso(usuario, curso, clave);
+    const res = await eliminarCurso(curso);
     if (res.ok) {
-      const horarios = await buscarHorariosPorUsuario(usuario, clave);
+      const horarios = await buscarHorariosPorUsuario();
       setTablaHorario(generarTablaHorario(horarios));
       setMsg(`Curso "${asignatura}" eliminado`);
     } else {
@@ -110,7 +113,7 @@ export default function HorarioTabla({ usuario, clave }) {
                 borderColor: 'white',
                 justifyContent: 'center',
               }}>
-              <Text style={{ color: 'white', fontSize: 12, textAlign: 'center' }}>
+                <Text style={{ color: 'white', fontSize: 12, textAlign: 'center' }}>
                 {tablaHorario?.[bloque]?.[dia] || '-'}
               </Text>
             </View>
@@ -213,7 +216,8 @@ export default function HorarioTabla({ usuario, clave }) {
             }}
             value={String(nuevoCurso.sala)}
             onChangeText={(text) => {
-              const soloNumeros = text.replace(/[^0-9]/g, '');
+              const soloNumeros = parseInt(text.replace(/[^0-9]/g, ''), 10) || 0;
+
               setNuevoCurso({ ...nuevoCurso, sala: soloNumeros });
             }}
             placeholder="Número de sala"
