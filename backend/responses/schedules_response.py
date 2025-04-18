@@ -14,6 +14,30 @@ class ScheduleErrorResponse(Enum):
         "message": "Missing required schedule fields.",
         "status_code": 400
     }
+    INVALID_PAVILION = {
+        "message": "Invalid pavilion specified.",
+        "status_code": 400
+    }
+    SCHEDULE_ALREADY_EXISTS = {
+        "message": "A schedule with the same details already exists.",
+        "status_code": 400
+    }
+    INVALID_DAY = {
+        "message": "Invalid day provided.",
+        "status_code": 400
+    }
+    INVALID_BLOCK = {
+        "message": "Invalid block specified.",
+        "status_code": 400
+    }
+    INVALID_CLASSROOM = {
+        "message": "Invalid classroom number.",
+        "status_code": 400
+    }
+    UNAUTHORIZED_ACCESS = {
+        "message": "You are not authorized to access this schedule.",
+        "status_code": 403
+    }
 
 
 class ScheduleSuccessResponse(Enum):
@@ -37,3 +61,8 @@ class ScheduleSuccessResponse(Enum):
         "message": "Schedules list retrieved successfully.",
         "status_code": 200
     }
+    VALIDATION_PASSED = {
+        "message": "Schedule validation passed.",
+        "status_code": 200
+    }
+

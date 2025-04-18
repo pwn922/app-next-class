@@ -42,7 +42,8 @@ class PavilionResource(Resource):
                 status_code=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("status_code"),
                 message=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
-
+        
+    
     @swag_from('../docs/pavilions/put.yml')
     def put(self, id):
         try:
@@ -110,6 +111,36 @@ class PavilionResource(Resource):
                 status_code=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("status_code"),
                 message=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
+        
+    @swag_from('../docs/pavilions/get_name.yml')
+    def get(self, name):
+        try:
+            pavilion = db.session.query(Pavilion).filter_by(name=name).first()
+            if not pavilion:
+                return error_response(
+                    error_code=PavilionErrorResponse.NOT_FOUND.name,
+                    status_code=PavilionErrorResponse.NOT_FOUND.value.get("status_code"),
+                    message=PavilionErrorResponse.NOT_FOUND.value.get("message")
+                )
+
+            return success_response(
+                message_key=PavilionSuccessResponse.RETRIEVED.value.get("message"),
+                status_code=PavilionSuccessResponse.RETRIEVED.value.get("status_code"),
+                data={
+                    "id": str(pavilion.id),
+                    "name": pavilion.name,
+                    "x": pavilion.x,
+                    "y": pavilion.y
+                }
+            )
+        except Exception as e:
+            logging.error(f"Unexpected error during get pavilion: {e}")
+            return error_response(
+                error_code=PavilionErrorResponse.UNEXPECTED_ERROR.name,
+                status_code=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("status_code"),
+                message=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("message")
+            )
+
 
 
 class PavilionListResource(Resource):
@@ -141,7 +172,7 @@ class PavilionListResource(Resource):
     def post(self):
         try:
             data = request.get_json()
-            name = data.get("name")
+            name = data.get("name", "").upper()
             x = data.get("x")
             y = data.get("y")
 

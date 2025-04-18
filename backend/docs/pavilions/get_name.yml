@@ -1,13 +1,12 @@
 tags:
   - "Pavilion"
-summary: Get a pavilion by ID
+summary: Get a pavilion by name
 parameters:
-  - name: id
+  - name: name
     in: path
     required: true
     type: string
-    format: uuid
-    description: The ID of the pavilion
+    description: The name of the pavilion
 responses:
   "200":
     description: Pavilion found

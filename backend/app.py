@@ -60,6 +60,11 @@ api.add_resource(
     '/pavilions/<uuid:id>',
     endpoint='pavilions'
 )
+api.add_resource(
+    PavilionResource,
+    '/pavilions/<string:name>',
+    
+)
 # api.add_resource(ClassroomListResource, '/classrooms/')
 # api.add_resource(
 #   ClassroomResource,

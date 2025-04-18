@@ -1,7 +1,7 @@
 tags:
   - "Schedule"
-summary: Create a new schedule for the authenticated user
-description: Creates a new schedule entry associated with the authenticated user. Requires a valid JWT token.
+summary: Create new schedules for the authenticated user
+description: Creates new schedule entries associated with the authenticated user. Requires a valid JWT token.
 security:
   - bearerAuth: []
 
@@ -10,13 +10,30 @@ parameters:
     name: body
     required: true
     schema:
-      $ref: "#/definitions/ScheduleCreateRequest"
+      type: object
+      properties:
+        schedules:
+          type: array
+          items:
+            $ref: "#/definitions/ScheduleCreateRequest"
+    description: List of schedule entries to be created
 
 responses:
   "201":
-    description: Schedule created successfully
+    description: Schedules created successfully
     schema:
-      $ref: "#/definitions/Schedule"
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Schedules created successfully."
+        data:
+          type: array
+          items:
+            $ref: "#/definitions/Schedule"
   "400":
     description: Invalid input
   "401":

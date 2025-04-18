@@ -3,6 +3,7 @@ import logging
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource, request
 from flasgger.utils import swag_from
+from models.pavilion import Pavilion
 from utils.responses import success_response, error_response
 from database.db import db
 from models.schedule import Schedule
@@ -157,7 +158,8 @@ class ScheduleListResource(Resource):
         try:
             user_id = get_jwt_identity()
             data = request.get_json()
-            required_fields = ['pavilion', 'block', 'classroom', 'day', 'subject']
+
+            required_fields = ['schedules']
             if not all(field in data for field in required_fields):
                 return error_response(
                     error_code=ScheduleErrorResponse.MISSING_FIELDS.name,
@@ -165,22 +167,59 @@ class ScheduleListResource(Resource):
                     message=ScheduleErrorResponse.MISSING_FIELDS.value.get("message")
                 )
 
-            new_schedule = Schedule(
-                id=uuid.uuid4(),
-                pavilion=data['pavilion'],
-                block=data['block'],
-                classroom=data['classroom'],
-                day=data['day'],
-                subject=data['subject'],
-                user_id=user_id
-            )
-            db.session.add(new_schedule)
-            db.session.commit()
+            schedules_data = data['schedules']
 
-            return success_response(
-                message_key=ScheduleSuccessResponse.CREATED.value.get("message"),
-                status_code=ScheduleSuccessResponse.CREATED.value.get("status_code"),
-                data={
+            for schedule_data in schedules_data:
+                required_fields = ['pavilion', 'block', 'classroom', 'day', 'subject']
+                if not all(field in schedule_data for field in required_fields):
+                    return error_response(
+                        error_code=ScheduleErrorResponse.MISSING_FIELDS.name,
+                        status_code=ScheduleErrorResponse.MISSING_FIELDS.value.get("status_code"),
+                        message=ScheduleErrorResponse.MISSING_FIELDS.value.get("message")
+                    )
+
+             
+                pavilion_name = schedule_data['pavilion']
+                name_pavilion = db.session.query(Pavilion).filter_by(name=pavilion_name).first()
+
+                if not name_pavilion:
+                    return error_response(
+                        error_code=ScheduleErrorResponse.INVALID_PAVILION.name,
+                        status_code=ScheduleErrorResponse.INVALID_PAVILION.value.get("status_code"),
+                        message=f"Pavilion '{pavilion_name}' not found."
+                    )
+
+                
+                existing_schedule = db.session.query(Schedule).filter_by(
+                    pavilion=schedule_data['pavilion'],
+                    block=schedule_data['block'],
+                    classroom=schedule_data['classroom'],
+                    day=schedule_data['day'].lower(),
+                    subject=schedule_data['subject'],
+                    user_id=user_id
+                ).first()
+
+                if existing_schedule:
+                    return error_response(
+                        error_code=ScheduleErrorResponse.SCHEDULE_ALREADY_EXISTS.name,
+                        status_code=ScheduleErrorResponse.SCHEDULE_ALREADY_EXISTS.value.get("status_code"),
+                        message=f"Schedule already exists for the given parameters: {schedule_data['pavilion']}, {schedule_data['block']}, {schedule_data['classroom']}, {schedule_data['day']}, {schedule_data['subject']}"
+                    )
+
+            
+            new_schedules = []
+            for schedule_data in schedules_data:
+                new_schedule = Schedule(
+                    id=uuid.uuid4(),
+                    pavilion=schedule_data['pavilion'],
+                    block=schedule_data['block'],
+                    classroom=schedule_data['classroom'],
+                    day=schedule_data['day'],
+                    subject=schedule_data['subject'],
+                    user_id=user_id
+                )
+                db.session.add(new_schedule)
+                new_schedules.append({
                     "id": str(new_schedule.id),
                     "pavilion": new_schedule.pavilion,
                     "block": new_schedule.block,
@@ -188,6 +227,17 @@ class ScheduleListResource(Resource):
                     "day": new_schedule.day,
                     "subject": new_schedule.subject,
                     "user_id": str(new_schedule.user_id) if new_schedule.user_id else None
+                })
+
+            db.session.commit()
+
+            return success_response(
+                message_key=ScheduleSuccessResponse.CREATED.value.get("message"),
+                status_code=ScheduleSuccessResponse.CREATED.value.get("status_code"),
+                data={
+                    "success": True,
+                    "message": "Schedules created successfully.",
+                    "data": new_schedules
                 }
             )
 
@@ -198,3 +248,5 @@ class ScheduleListResource(Resource):
                 status_code=ScheduleErrorResponse.UNEXPECTED_ERROR.value.get("status_code"),
                 message=ScheduleErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
+
+
