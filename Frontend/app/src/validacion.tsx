@@ -83,7 +83,7 @@ export async function buscarHorariosPorUsuario() {
     return horariosUsuario;
 
   } catch (error) {
-    console.error("Fallo en la conexión con el backend, usando respaldo local:", error);
+    //console.error("Fallo en la conexión con el backend, usando respaldo local:", error);
     return [];
   }
 }
@@ -95,7 +95,7 @@ export async function obtenerClasesConCoordenadas(): Promise<ClaseConCoordenadas
     return data;
   } catch (error) {
     const usuario = 'a'; // puedes parametrizarlo si se necesita más adelante
-    console.error("Fallo en la conexión con el backend, usando respaldo local:", error);
+    //console.error("Fallo en la conexión con el backend, usando respaldo local:", error);
     //return obtenerClasesConCoordenadasOffline(usuario);
     return [];
     

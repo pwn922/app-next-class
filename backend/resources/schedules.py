@@ -92,12 +92,15 @@ class ScheduleResource(Resource):
                 message=ScheduleErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
 
-    @jwt_required()
-    @swag_from('../docs/schedules/delete.yml')
-    def delete(self, id):
+    @jwt_required()  # Requiere autenticación JWT
+    @swag_from('../docs/schedules/delete.yml')  # Documentación Swagger
+    def delete(self, id):  # El ID debe ser un parámetro de la ruta
         try:
             user_id = get_jwt_identity()
+
+            # Buscar el horario en la base de datos utilizando el ID de la ruta
             schedule = db.session.query(Schedule).filter_by(id=id, user_id=user_id).first()
+
             if not schedule:
                 return error_response(
                     error_code=ScheduleErrorResponse.NOT_FOUND.name,
@@ -114,12 +117,11 @@ class ScheduleResource(Resource):
             )
 
         except Exception as e:
-            logging.error(f"Error deleting schedule: {e}")
             return error_response(
                 error_code=ScheduleErrorResponse.UNEXPECTED_ERROR.name,
                 status_code=ScheduleErrorResponse.UNEXPECTED_ERROR.value.get("status_code"),
                 message=ScheduleErrorResponse.UNEXPECTED_ERROR.value.get("message")
-            )
+            ) 
 
 
 class ScheduleListResource(Resource):
@@ -152,13 +154,14 @@ class ScheduleListResource(Resource):
                 message=ScheduleErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
 
-    @jwt_required()
+    @jwt_required()  
     @swag_from('../docs/schedules/post.yml')
     def post(self):
         try:
-            user_id = get_jwt_identity()
-            data = request.get_json()
+            user_id = get_jwt_identity()  # Obtener el id del usuario autenticado
+            data = request.get_json()  # Obtener los datos enviados en la solicitud
 
+            # Comprobamos que se haya enviado el campo 'schedules'
             required_fields = ['schedules']
             if not all(field in data for field in required_fields):
                 return error_response(
@@ -167,9 +170,10 @@ class ScheduleListResource(Resource):
                     message=ScheduleErrorResponse.MISSING_FIELDS.value.get("message")
                 )
 
-            schedules_data = data['schedules']
+            schedules_data = data['schedules']  # Obtenemos los horarios
 
             for schedule_data in schedules_data:
+                # Validamos que todos los campos requeridos estén presentes en cada horario
                 required_fields = ['pavilion', 'block', 'classroom', 'day', 'subject']
                 if not all(field in schedule_data for field in required_fields):
                     return error_response(
@@ -178,8 +182,8 @@ class ScheduleListResource(Resource):
                         message=ScheduleErrorResponse.MISSING_FIELDS.value.get("message")
                     )
 
-             
                 pavilion_name = schedule_data['pavilion']
+                # Verificamos si el pabellón existe
                 name_pavilion = db.session.query(Pavilion).filter_by(name=pavilion_name).first()
 
                 if not name_pavilion:
@@ -189,7 +193,7 @@ class ScheduleListResource(Resource):
                         message=f"Pavilion '{pavilion_name}' not found."
                     )
 
-                
+                # Comprobamos si ya existe un horario con los mismos parámetros
                 existing_schedule = db.session.query(Schedule).filter_by(
                     pavilion=schedule_data['pavilion'],
                     block=schedule_data['block'],
@@ -206,11 +210,11 @@ class ScheduleListResource(Resource):
                         message=f"Schedule already exists for the given parameters: {schedule_data['pavilion']}, {schedule_data['block']}, {schedule_data['classroom']}, {schedule_data['day']}, {schedule_data['subject']}"
                     )
 
-            
+            # Creamos los nuevos horarios
             new_schedules = []
             for schedule_data in schedules_data:
                 new_schedule = Schedule(
-                    id=uuid.uuid4(),
+                    id=uuid.uuid4(),  # Generamos un ID único para cada curso
                     pavilion=schedule_data['pavilion'],
                     block=schedule_data['block'],
                     classroom=schedule_data['classroom'],
@@ -220,7 +224,7 @@ class ScheduleListResource(Resource):
                 )
                 db.session.add(new_schedule)
                 new_schedules.append({
-                    "id": str(new_schedule.id),
+                    "id": str(new_schedule.id),  # Aseguramos que el ID sea parte de la respuesta
                     "pavilion": new_schedule.pavilion,
                     "block": new_schedule.block,
                     "classroom": new_schedule.classroom,
@@ -229,7 +233,7 @@ class ScheduleListResource(Resource):
                     "user_id": str(new_schedule.user_id) if new_schedule.user_id else None
                 })
 
-            db.session.commit()
+            db.session.commit()  # Guardamos los cambios en la base de datos
 
             return success_response(
                 message_key=ScheduleSuccessResponse.CREATED.value.get("message"),
@@ -237,7 +241,7 @@ class ScheduleListResource(Resource):
                 data={
                     "success": True,
                     "message": "Schedules created successfully.",
-                    "data": new_schedules
+                    "data": new_schedules  # Devolvemos los horarios recién creados, incluidos sus IDs
                 }
             )
 

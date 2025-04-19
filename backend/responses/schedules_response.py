@@ -55,7 +55,7 @@ class ScheduleSuccessResponse(Enum):
     }
     DELETED = {
         "message": "Schedule deleted successfully.",
-        "status_code": 204
+        "status_code": 200
     }
     LIST_RETRIEVED = {
         "message": "Schedules list retrieved successfully.",

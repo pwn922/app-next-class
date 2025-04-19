@@ -4,6 +4,7 @@ import { View, Text, Button, TextInput, Alert, TouchableOpacity, ScrollView } fr
 import { bloquesHorario, bloques, dias, TablaHorario } from '../utils/constantes';
 import { agregarCurso, eliminarCurso ,buscarHorariosPorUsuario, obtenerNombresDepartamentos} from '../src/validacion';
 import { generarTablaHorario } from '../utils/funciones';
+import { agregarCursoBackend, obtenerNombresDepartamentosBackend } from '../src/conexion_back/conexion';
 
 export default function HorarioTabla({  }) {
 
@@ -13,13 +14,15 @@ export default function HorarioTabla({  }) {
   const [mostrarEliminar, setMostrarEliminar] = useState(false);
   const [departamentos, setDepartamentos] = useState<string[]>([]);
   const [usuario, setUsuario] = useState("");
+  const [asignatura, setAsignatura] = useState("");
   const [nuevoCurso, setNuevoCurso] = useState({
     bloque: 'A',
     dia: 'lunes',
     asignatura: '',
     sala: 101,
-    departamento: 'x',
+    departamento: '',
   });
+
   useEffect(() => {
     const cargarHorario = async () => {
       //if (!usuario) return;
@@ -38,37 +41,76 @@ export default function HorarioTabla({  }) {
   }, []);
   
   useEffect(() => {
-    const cargarDepartamentos = async () => {
+    const cargarPabellones = async () => {
       try {
-        const departamentos = await obtenerNombresDepartamentos( );
-        setDepartamentos(departamentos || []);
+        const pabellonesCompletos = await obtenerNombresDepartamentosBackend(); 
+  
+        
+        const nombresPabellones = pabellonesCompletos.map((pabellon: { name: string }) => pabellon.name);
+  
+        
+        setDepartamentos(nombresPabellones || []);
       } catch (err) {
-        console.error('Error al cargar departamentos:', err);
+        console.error('Error al cargar pabellones:', err);
       }
     };
   
-    cargarDepartamentos();
+    cargarPabellones();
   }, []);
+
+
   const handleAgregar = async () => {
-    const res = await agregarCurso(nuevoCurso);
-    if (res.ok) {
-      const horarios = await buscarHorariosPorUsuario( );
-      setTablaHorario(generarTablaHorario(horarios));
-      setMsg('Curso agregado!');
-      setNuevoCurso({ ...nuevoCurso, asignatura: '' });
-      setMostrarFormulario(false);
-    } else {
-      setMsg('Error al agregar el curso');
+    if (!nuevoCurso.departamento) {
+      setMsg('Por favor, selecciona un pabellón.');
+      return; // Asegura que el usuario haya seleccionado un pabellón
+    }
+  
+    // Preparamos el objeto con los nombres correctos
+    const cursoData = {
+      block: nuevoCurso.bloque,         // 'A', 'B', etc.
+      classroom: String(nuevoCurso.sala), // Aseguramos que sea un string
+      day: nuevoCurso.dia,              // 'lunes', 'martes', etc.
+      pavilion: nuevoCurso.departamento, // Nombre del pabellón
+      subject: nuevoCurso.asignatura    // Nombre de la asignatura
+    };
+  
+    try {
+      // Llamada a la función que envía el curso al backend
+      const res = await agregarCursoBackend(cursoData);
+  
+      if (res) {
+        // Refetch (Reconsulta) los horarios actualizados del servidor
+        const horariosActualizados = await buscarHorariosPorUsuario();
+        setTablaHorario(generarTablaHorario(horariosActualizados)); // Actualizamos el estado con los nuevos horarios
+        
+        setMsg('Curso agregado!');
+        setNuevoCurso({ 
+          bloque: 'A',
+          dia: 'lunes',
+          asignatura: '',
+          sala: 101,
+          departamento: ''
+        });
+        setMostrarFormulario(false); // Ocultar el formulario después de agregar el curso
+      } else {
+        setMsg('Error al agregar el curso: ' + (res.message || "No se recibieron datos"));
+      }
+    } catch (error) {
+      console.error('Error al agregar el curso:', error);
+      setMsg('Hubo un problema al agregar el curso. Intenta nuevamente.');
     }
   };
+
   const handleEliminarCurso = async (bloque:string, dia:string, asignatura:string) => {
-    const curso = {
-      bloque,
-      dia,
-      asignatura,
-      sala: 999,
-      departamento: 'test',
-    };
+
+      const curso = {
+        bloque,
+        dia,
+        asignatura,
+        sala: 999,
+        departamento: 'test',
+      };
+    console.log("curso eliminado",curso)
     const res = await eliminarCurso(curso);
     if (res.ok) {
       const horarios = await buscarHorariosPorUsuario();
@@ -187,7 +229,7 @@ export default function HorarioTabla({  }) {
             ))}
           </View>
 
-          <Text style={{ color: 'white', marginBottom: 4 }}>Departamento:</Text>
+          <Text style={{ color: 'white', marginBottom: 4 }}>Pabellón:</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
             {departamentos.map((departamento) => (
               <TouchableOpacity

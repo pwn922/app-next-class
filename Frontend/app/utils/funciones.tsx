@@ -1,4 +1,5 @@
 import {  Bloque, bloques, Clase, Dia, dias, TablaHorario } from './constantes';
+
 export function generarTablaHorario_old(horariosUsuario: Clase[]): TablaHorario {
   const tabla: TablaHorario = {};
 
@@ -39,7 +40,8 @@ export function generarTablaHorario(horarios: Clase[]): TablaHorario {
       tabla[bloque] = {};
     }
 
-    tabla[bloque]![dia] = `${clase.asignatura} \n ${clase.departamento.toUpperCase()}-${clase.sala}`;
+    //tabla[bloque]![dia] = `${clase.asignatura} \n ${clase.departamento.toUpperCase()}-${clase.sala}`;
+    tabla[bloque]![dia] = `${clase.asignatura}`
   }
 
   return tabla;

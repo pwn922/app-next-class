@@ -22,6 +22,7 @@ export type TablaHorario = {
 };
 
 export type Clase = {
+  
   bloque: Bloque;
   dia: Dia;
   asignatura: string;

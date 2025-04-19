@@ -11,7 +11,7 @@ parameters:
     required: true
     type: string
     format: uuid
-    description: The ID of the schedule to delete
+    description: The ID of the schedule to delete. The ID should be provided as part of the path.
 
 responses:
   "200":
@@ -21,6 +21,7 @@ responses:
       properties:
         message:
           type: string
+          example: "Schedule deleted successfully"
   "401":
     description: Unauthorized - Invalid or missing JWT token
   "404":
