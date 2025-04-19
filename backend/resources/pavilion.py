@@ -111,7 +111,9 @@ class PavilionResource(Resource):
                 status_code=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("status_code"),
                 message=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
-        
+
+
+class PavilionByNameResource(Resource):
     @swag_from('../docs/pavilions/get_name.yml')
     def get(self, name):
         try:
@@ -140,7 +142,6 @@ class PavilionResource(Resource):
                 status_code=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("status_code"),
                 message=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
-
 
 
 class PavilionListResource(Resource):
