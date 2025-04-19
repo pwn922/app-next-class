@@ -4,7 +4,7 @@ from flask_restful import Api
 from resources.login import LoginResource
 from resources.register import RegisterResource
 from resources.user import UserListResource, UserResource
-from resources.pavilion import PavilionResource, PavilionListResource
+from resources.pavilion import PavilionByNameResource, PavilionResource, PavilionListResource
 # from resources.classroom import ClassroomResource, ClassroomListResource
 # from resources.subject import SubjectResource, SubjectListResource
 from resources.schedules import ScheduleResource, ScheduleListResource
@@ -33,10 +33,6 @@ CORS(app, origins=[
     'https://openidconnect.googleapis.com/v1/userinfo',
     'https://www.googleapis.com',
     'https://oauth2.googleapis.com/revoke',
-    'https://192.168.1.81:8081',
-    'https://localhost:5000',
-    "http://192.168.1.100",
-    "exp://192.168.1.100:19000",
 ])
 migrate = Migrate(app, db)
 api = Api(app, prefix='/api/v1')
@@ -61,9 +57,8 @@ api.add_resource(
     endpoint='pavilions'
 )
 api.add_resource(
-    PavilionResource,
+    PavilionByNameResource,
     '/pavilions/<string:name>',
-    
 )
 # api.add_resource(ClassroomListResource, '/classrooms/')
 # api.add_resource(
