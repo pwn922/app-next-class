@@ -15,13 +15,13 @@ class TestSchedulesResource:
             "Authorization": f"Bearer {access_token}"
         }
 
+        mock_db_session.query().filter_by().scalar.return_value = None
         mock_schedule_list = create_mock_schedule_list(day="lunes", user_id=user_id)
-
         mock_db_session.query.return_value.filter_by.return_value.all.return_value = mock_schedule_list
 
         response = client.get('/api/v1/user/schedules/', headers=headers)
-
         data = json.loads(response.data.decode())
+
         assert response.status_code == ScheduleSuccessResponse.LIST_RETRIEVED.value.get("status_code")
         assert data['success'] is True
         assert len(data['data']) == 2
