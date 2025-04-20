@@ -35,10 +35,10 @@ def create_app(testing=False):
     if testing:
         app.config['TESTING'] = True
         app.config['DEBUG'] = False
-        app.config['JWT_SECRET_KEY'] = 'testing-secret-key'
+        #app.config['JWT_SECRET_KEY'] = 'testing-secret-key'
 
     init_db(app)
-    init_jwt(app)
+    #init_jwt(app)
     JWTManager(app)
 
     CORS(app, origins=[
