@@ -42,8 +42,7 @@ class PavilionResource(Resource):
                 status_code=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("status_code"),
                 message=PavilionErrorResponse.UNEXPECTED_ERROR.value.get("message")
             )
-        
-    
+
     @swag_from('../docs/pavilions/put.yml')
     def put(self, id):
         try:
