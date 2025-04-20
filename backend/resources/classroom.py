@@ -1,3 +1,4 @@
+"""
 from flask import request
 import logging
 from flask_restful import Resource
@@ -197,3 +198,4 @@ class ClassroomListResource(Resource):
                 message=ClassroomErrorResponse.UNEXPECTED_ERROR.value
                 .get("message")
             )
+"""

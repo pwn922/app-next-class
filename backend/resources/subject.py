@@ -1,3 +1,4 @@
+"""
 import uuid
 import logging
 from flask_restful import Resource, request
@@ -189,3 +190,4 @@ class SubjectListResource(Resource):
                 message=SubjectErrorResponse.UNEXPECTED_ERROR.value
                 .get("message")
             )
+"""
