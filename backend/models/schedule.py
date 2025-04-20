@@ -15,7 +15,7 @@ class Schedule(Base):
     subject = Column(String(100), nullable=False)
     created_at = Column(
         DateTime,
-        default=datetime.now(timezone.utc),
+        default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
 

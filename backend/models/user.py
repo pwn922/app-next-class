@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import relationship
 from models.base import Base
 
-
 class User(Base):
     __tablename__ = 'user'
 
@@ -13,9 +12,10 @@ class User(Base):
     password = Column(String(255), nullable=False)
     created_at = Column(
         DateTime,
-        default=datetime.now(timezone.utc),
+        default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
+
     # role = Column(String(50), nullable=False)
     schedules = relationship(
         'Schedule',
