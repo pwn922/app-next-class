@@ -43,7 +43,6 @@ class RegisterResource(Resource):
                 )
 
             hashed_password = generate_secure_password(password)
-            print(hashed_password)
             new_user = User(email=email, password=hashed_password)
             db.session.add(new_user)
             db.session.commit()
