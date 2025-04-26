@@ -1,22 +1,35 @@
-//Aqui es donde se maneja la pantalla del mapa
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, ScrollView } from 'react-native';
 import { Svg, Image as SvgImage } from 'react-native-svg';
-import { bloquesHorario, bloques } from '../utils/constantes';
+import { bloquesHorario, bloques, ClaseConCoordenadas, ClaseConMinutos, Dia, Bloque } from '../utils/constantes';
 import { obtenerClasesConCoordenadas } from '../src/validacion';
 
-export default function MapaClases({ usuario, clave }) {
-  const [clasesCoordenadas, setClasesCoordenadas] = useState([]);
-  const [claseMasCercana, setClaseMasCercana] = useState(null);
-  const escalaX = 3;
-  const escalaY = 3;
+export default function MapaClases() {
+  const [clasesCoordenadas, setClasesCoordenadas] = useState<ClaseConCoordenadas[]>([]);
+  const [claseMasCercana, setClaseMasCercana] = useState<ClaseConMinutos | null>(null);
+
+  //const escalaX = 3;
+  //const escalaY = 3;
+  const escala = 2;
+
+  const hoy = new Date();
+  const diaActual: Dia = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()] as Dia;
+  const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
+
+  const bloqueActual = bloques.find(b => {
+    const { inicio, fin } = bloquesHorario[b];
+    const inicioMin = parseInt(inicio.split(':')[0]) * 60 + parseInt(inicio.split(':')[1]);
+    const finMin = parseInt(fin.split(':')[0]) * 60 + parseInt(fin.split(':')[1]);
+    return horaActualMin >= inicioMin && horaActualMin < finMin;
+  });
+
+  const indiceBloqueSiguiente = bloqueActual ? bloques.indexOf(bloqueActual) + 1 : -1;
+  const siguienteBloque: Bloque | null = bloques[indiceBloqueSiguiente] || null;
+
   useEffect(() => {
-    const hoy = new Date();
-    const diaActual = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()];
-    const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
     const cargarDatosMapa = async () => {
       try {
-        const coordenadas = await obtenerClasesConCoordenadas(usuario, clave);
+        const coordenadas = await obtenerClasesConCoordenadas();
         setClasesCoordenadas(coordenadas || []);
 
         const clasesHoy = (coordenadas || [])
@@ -36,20 +49,10 @@ export default function MapaClases({ usuario, clave }) {
     };
 
     cargarDatosMapa();
-  }, [usuario]);
-  const hoy = new Date();
-  const diaActual = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()];
-  const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
-  const bloqueActual = bloques.find(b => {
-    const { inicio, fin } = bloquesHorario[b];
-    const inicioMin = parseInt(inicio.split(':')[0]) * 60 + parseInt(inicio.split(':')[1]);
-    const finMin = parseInt(fin.split(':')[0]) * 60 + parseInt(fin.split(':')[1]);
-    return horaActualMin >= inicioMin && horaActualMin < finMin;
-  });
-  const indiceBloqueSiguiente = bloqueActual ? bloques.indexOf(bloqueActual) + 1 : -1;
-  const siguienteBloque = bloques[indiceBloqueSiguiente] || null;
+  }, []);
+
   return (
-    <View style={{ marginTop: 10, borderWidth: 1, borderColor: 'white' }}>
+    <View style={{ flex: 1, marginTop: 10, borderWidth: 1, borderColor: 'white' }}>
       <Text style={{ color: 'white', fontWeight: 'bold', marginBottom: 5, textAlign: 'center' }}>
         Ubicación de clases
       </Text>
@@ -65,60 +68,77 @@ export default function MapaClases({ usuario, clave }) {
         {`Hora: ${hoy.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`}
       </Text>
 
-      <View style={{ width: 903, height: 1394 }}>
-        <Svg height="100%" width="100%" style={{ position: 'absolute' }}>
-          <SvgImage
-            x="0"
-            y="0"
-            width="1394"
-            height="903"
-            preserveAspectRatio="xMidYMid slice"
-            href={require('../src/mapa.jpg')}
-            transform="rotate(90, 451, 451)"
-          />
-        </Svg>
-
-        {clasesCoordenadas.map((clase, index) => {
-          let gif = require('../src/verde.gif');
-          const bloque = bloquesHorario[clase.bloque];
-          if (bloque && clase.dia === diaActual) {
-            const minutosInicio =
-              parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
-            const esClaseMasCercana =
-              claseMasCercana &&
-              clase.bloque === claseMasCercana.bloque &&
-              clase.x === claseMasCercana.x &&
-              clase.y === claseMasCercana.y;
-            const esSiguienteBloque = clase.bloque === siguienteBloque;
-            if (esClaseMasCercana) {
-              gif = require('../src/rojo.gif');
-            } else if (esSiguienteBloque) {
-              gif = require('../src/naranja.gif');
-            } else if (minutosInicio < horaActualMin) {
-              gif = require('../src/verde.gif');
-            } else if (minutosInicio > horaActualMin && minutosInicio < horaActualMin + 30) {
-              gif = require('../src/naranja.gif');
-            } else if (minutosInicio > horaActualMin) {
-              gif = require('../src/amarillo.gif');
-            }
-          }
-
-          return (
-            <Image
-              key={index}
-              source={gif}
-              style={{
-                width: 50,
-                height: 50,
-                position: 'absolute',
-                left: clase.x * escalaX - 12,
-                top: clase.y * escalaY - 12,
-                transform: [{ rotate: '90deg' }],
-              }}
+      <ScrollView 
+        style={{ flex: 1 }}
+        contentContainerStyle={{ alignItems: 'center', paddingVertical: 20 }}
+        minimumZoomScale={1}
+        maximumZoomScale={5}
+        bouncesZoom={true}
+        horizontal={true}
+      >
+        <View style={{ width: 928, height: 602 }}>
+          <Svg height="100%" width="100%" style={{ position: 'absolute' }}>
+            <SvgImage
+              x="0"
+              y="0"
+              width="928"//"903"
+              height="602"//"1394"
+              preserveAspectRatio="xMidYMid slice"
+              href={require('../src/mapa.jpg')}
             />
-          );
-        })}
-      </View>
+          </Svg>
+
+          {clasesCoordenadas.map((clase, index) => {
+            let gif = require('../src/verde.gif');
+            const bloque = bloquesHorario[clase.bloque];
+
+            if (bloque && clase.dia === diaActual) {
+              const minutosInicio =
+                parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
+
+              const esClaseMasCercana =
+                claseMasCercana &&
+                clase.bloque === claseMasCercana.bloque &&
+                clase.x === claseMasCercana.x &&
+                clase.y === claseMasCercana.y;
+
+              const esSiguienteBloque = clase.bloque === siguienteBloque;
+
+              if (esClaseMasCercana) {
+                gif = require('../src/rojo.gif');
+              } else if (esSiguienteBloque) {
+                gif = require('../src/naranja.gif');
+              } else if (minutosInicio < horaActualMin) {
+                gif = require('../src/verde.gif');
+              } else if (minutosInicio > horaActualMin && minutosInicio < horaActualMin + 30) {
+                gif = require('../src/naranja.gif');
+              } else if (minutosInicio > horaActualMin) {
+                gif = require('../src/amarillo.gif');
+              }
+            }
+
+            return (
+              <Image
+                key={index}
+                source={gif}
+                style={{
+                  /*width: 50,
+                  height: 50,
+                  position: 'absolute',
+                  left: clase.x * escalaX - 12,
+                  top: clase.y * escalaY - 12,*/
+                  width: 30,
+                  height: 30,
+                  position: 'absolute',
+                  top: 602 - clase.x * escala - 24,
+                  left: clase.y * escala -12,
+                  // transform: [{ rotate: '90deg' }],
+                }}
+              />
+            );
+          })}
+        </View>
+      </ScrollView>
     </View>
   );
 }
