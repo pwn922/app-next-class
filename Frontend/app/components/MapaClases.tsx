@@ -14,18 +14,11 @@ export default function MapaClases() {
 
   const hoy = new Date();
   const diaActual: Dia = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()] as Dia;
+  const dias: Dia[] = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
   const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
-
-  const bloqueActual = bloques.find(b => {
-    const { inicio, fin } = bloquesHorario[b];
-    const inicioMin = parseInt(inicio.split(':')[0]) * 60 + parseInt(inicio.split(':')[1]);
-    const finMin = parseInt(fin.split(':')[0]) * 60 + parseInt(fin.split(':')[1]);
-    return horaActualMin >= inicioMin && horaActualMin < finMin;
-  });
-
-  const indiceBloqueSiguiente = bloqueActual ? bloques.indexOf(bloqueActual) + 1 : -1;
-  const siguienteBloque: Bloque | null = bloques[indiceBloqueSiguiente] || null;
-
+  let horarioA_rojo = 'null';
+  horarioA_rojo = 'Dato de actualizado horario rojo prueba';
+  
   useEffect(() => {
     const cargarDatosMapa = async () => {
       try {
@@ -68,6 +61,18 @@ export default function MapaClases() {
         {`Hora: ${hoy.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`}
       </Text>
 
+      {/*<View style={{ marginBottom: 10 }}>
+        {claseMasCercana ? (
+          <Text style={{ color: 'white', fontSize: 16, textAlign: 'center' }}>
+            {`Próxima clase: ${claseMasCercana.asignatura} en el pabellón ${claseMasCercana.departamento} (Sala ${claseMasCercana.sala})`}
+          </Text>
+        ) : (
+          <Text style={{ color: 'white', fontSize: 16, textAlign: 'center' }}>
+            Terminó el periodo académico de esta semana
+          </Text>
+        )}
+      </View>*/}
+
       <ScrollView 
         style={{ flex: 1 }}
         contentContainerStyle={{ alignItems: 'center', paddingVertical: 20 }}
@@ -89,32 +94,33 @@ export default function MapaClases() {
           </Svg>
 
           {clasesCoordenadas.map((clase, index) => {
-            let gif = require('../src/verde.gif');
+            let gif = require('../src/verde.gif'); 
+            const diaClase = clase.dia;
+
+            const hoy = new Date();
+            const diaActual: Dia = dias[hoy.getDay()];
+            const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
+
             const bloque = bloquesHorario[clase.bloque];
+            const minutosInicio = parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
+            const minutosFin = parseInt(bloque.fin.split(':')[0]) * 60 + parseInt(bloque.fin.split(':')[1]);
 
-            if (bloque && clase.dia === diaActual) {
-              const minutosInicio =
-                parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
+            const diaActualIndex = dias.indexOf(diaActual); 
+            const diaClaseIndex = dias.indexOf(diaClase);   
+            const diaSiguienteIndex = (diaActualIndex + 1) % 7;  
 
-              const esClaseMasCercana =
-                claseMasCercana &&
-                clase.bloque === claseMasCercana.bloque &&
-                clase.x === claseMasCercana.x &&
-                clase.y === claseMasCercana.y;
-
-              const esSiguienteBloque = clase.bloque === siguienteBloque;
-
-              if (esClaseMasCercana) {
+            if (diaClaseIndex === diaActualIndex) {
+              if (horaActualMin >= minutosInicio && horaActualMin < minutosFin) {
                 gif = require('../src/rojo.gif');
-              } else if (esSiguienteBloque) {
-                gif = require('../src/naranja.gif');
-              } else if (minutosInicio < horaActualMin) {
-                gif = require('../src/verde.gif');
-              } else if (minutosInicio > horaActualMin && minutosInicio < horaActualMin + 30) {
-                gif = require('../src/naranja.gif');
-              } else if (minutosInicio > horaActualMin) {
+              } else {
                 gif = require('../src/amarillo.gif');
               }
+            } else if (diaClaseIndex === diaSiguienteIndex) {
+              gif = require('../src/naranja.gif');
+            } else if ((diaClaseIndex + 7 - diaActualIndex) % 7 < 3) {
+              gif = require('../src/amarillo.gif');
+            } else if (diaClaseIndex < diaActualIndex) {
+              gif = require('../src/verde.gif');
             }
 
             return (
@@ -122,17 +128,11 @@ export default function MapaClases() {
                 key={index}
                 source={gif}
                 style={{
-                  /*width: 50,
-                  height: 50,
-                  position: 'absolute',
-                  left: clase.x * escalaX - 12,
-                  top: clase.y * escalaY - 12,*/
                   width: 30,
                   height: 30,
                   position: 'absolute',
                   top: 602 - clase.x * escala - 24,
-                  left: clase.y * escala -12,
-                  // transform: [{ rotate: '90deg' }],
+                  left: clase.y * escala - 12,
                 }}
               />
             );
