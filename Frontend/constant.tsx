@@ -7,4 +7,5 @@ export const INFO_PAVILION_BY_NAME_URL = BACKEND_URL + API_V1 + "/pavilions/"
 export const GET_ALL_PAVILIONS = BACKEND_URL + API_V1 + "/pavilions/"
 export const POST_SCHEDULE = BACKEND_URL + API_V1 + "/user/schedules/"
 export const DELETE_USER_SCHEDULE_BY_ID = BACKEND_URL + API_V1 +"/user/schedules"
+export const GET_USER = BACKEND_URL + API_V1 + "/user"
 

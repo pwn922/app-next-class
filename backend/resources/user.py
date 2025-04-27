@@ -1,4 +1,5 @@
 import logging
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, request
 from flasgger.utils import swag_from
 from database.db import db
@@ -10,10 +11,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 class UserResource(Resource):
+    @jwt_required()
     @swag_from('../docs/users/get.yml')
-    def get(self, id):
+    def get(self):
         try:
-            user = db.session.query(User).filter_by(id=id).first()
+            user_id = get_jwt_identity()
+            user = db.session.query(User).filter_by(id=user_id).first()
             if not user:
                 return error_response(
                     error_code=UserErrorResponse.NOT_FOUND.name,

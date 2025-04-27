@@ -1,24 +1,15 @@
 tags:
   - "User"
-parameters:
-  - name: id
-    in: path
-    description: UUID of the user to retrieve.
-    required: true
-    type: string
-    format: uuid
+parameters: []
 responses:
   "200":
-    description: Successful operation
+    description: Successful operation, user retrieved successfully.
     schema:
       $ref: "#/definitions/User"
-  "400":
-    description: Invalid UUID supplied
   "404":
-    description: User not found
+    description: User not found. The user corresponding to the ID extracted from the JWT token does not exist.
   "500":
-    description: Internal server error
-
+    description: Internal server error. An unexpected error occurred during the process.
 definitions:
   User:
     type: object
