@@ -88,51 +88,41 @@ export default function MapaClases() {
             />
           </Svg>
 
-          {clasesCoordenadas.map((clase, index) => {
-            let gif = require('../src/verde.gif');
+                    {clasesCoordenadas.map((clase, index) => {
+            const hoy = new Date();
+            const diaActual: Dia = dias[hoy.getDay()];
+            const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
+
             const bloque = bloquesHorario[clase.bloque];
+            const minutosInicio = parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
+            const minutosFin = parseInt(bloque.fin.split(':')[0]) * 60 + parseInt(bloque.fin.split(':')[1]);
 
-            if (bloque && clase.dia === diaActual) {
-              const minutosInicio =
-                parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
+            const diaActualIndex = dias.indexOf(diaActual);
+            const diaClaseIndex = dias.indexOf(clase.dia);
+            const diaSiguienteIndex = (diaActualIndex + 1) % 7;
 
-              const esClaseMasCercana =
-                claseMasCercana &&
-                clase.bloque === claseMasCercana.bloque &&
-                clase.x === claseMasCercana.x &&
-                clase.y === claseMasCercana.y;
-
-              const esSiguienteBloque = clase.bloque === siguienteBloque;
-
-              if (esClaseMasCercana) {
-                gif = require('../src/rojo.gif');
-              } else if (esSiguienteBloque) {
-                gif = require('../src/naranja.gif');
-              } else if (minutosInicio < horaActualMin) {
+            let gif = null; 
+            if (diaClaseIndex === diaActualIndex) {
+              if (horaActualMin >= minutosInicio && horaActualMin < minutosFin) {
                 gif = require('../src/verde.gif');
-              } else if (minutosInicio > horaActualMin && minutosInicio < horaActualMin + 30) {
-                gif = require('../src/naranja.gif');
-              } else if (minutosInicio > horaActualMin) {
-                gif = require('../src/amarillo.gif');
-              }
+              } 
+            } else if (diaClaseIndex === diaSiguienteIndex) {
+              gif = require('../src/amarillo.gif');
             }
+
+            // Si no hay gif asignado, no renderizar nada
+            if (!gif) return null;
 
             return (
               <Image
                 key={index}
                 source={gif}
                 style={{
-                  /*width: 50,
-                  height: 50,
-                  position: 'absolute',
-                  left: clase.x * escalaX - 12,
-                  top: clase.y * escalaY - 12,*/
                   width: 30,
                   height: 30,
                   position: 'absolute',
                   top: 602 - clase.x * escala - 24,
-                  left: clase.y * escala -12,
-                  // transform: [{ rotate: '90deg' }],
+                  left: clase.y * escala - 12,
                 }}
               />
             );
