@@ -2,19 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, TextInput, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import { bloquesHorario, bloques, dias, TablaHorario } from '../utils/constantes';
-import { agregarCurso, eliminarCurso ,buscarHorariosPorUsuario, obtenerNombresDepartamentos} from '../src/validacion';
+import { agregarCurso, eliminarCurso ,buscarHorariosPorUsuario } from '../src/validacion';
 import { generarTablaHorario } from '../utils/funciones';
 import { agregarCursoBackend, obtenerNombresDepartamentosBackend } from '../src/conexion_back/conexion';
 
-export default function HorarioTabla({  }) {
-
+export default function HorarioTabla({ }) {
   const [tablaHorario, setTablaHorario] = useState<TablaHorario>({});
   const [msg, setMsg] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarEliminar, setMostrarEliminar] = useState(false);
   const [departamentos, setDepartamentos] = useState<string[]>([]);
-  const [usuario, setUsuario] = useState("");
-  const [asignatura, setAsignatura] = useState("");
+  const [formularioValido, setFormularioValido] = useState(false);
   const [nuevoCurso, setNuevoCurso] = useState({
     bloque: 'A',
     dia: 'lunes',
@@ -23,10 +21,17 @@ export default function HorarioTabla({  }) {
     departamento: '',
   });
 
+  const mostrarError = (titulo: string, mensaje: string) => {
+    Alert.alert(
+      titulo,
+      mensaje,
+      [{ text: 'OK', style: 'destructive' }],
+      { cancelable: true }
+    );
+  };
+
   useEffect(() => {
     const cargarHorario = async () => {
-      //if (!usuario) return;
-
       try {
         const horarios = await buscarHorariosPorUsuario();
         const tabla = generarTablaHorario(horarios);
@@ -37,80 +42,90 @@ export default function HorarioTabla({  }) {
       }
     };
     cargarHorario();
-
   }, []);
-  
+
   useEffect(() => {
     const cargarPabellones = async () => {
       try {
-        const pabellonesCompletos = await obtenerNombresDepartamentosBackend(); 
-  
-        
-        const nombresPabellones = pabellonesCompletos.map((pabellon: { name: string }) => pabellon.name);
-  
-        
+        const pabellonesCompletos = await obtenerNombresDepartamentosBackend();
+        const nombresPabellones = pabellonesCompletos.map((p: { name: string }) => p.name);
         setDepartamentos(nombresPabellones || []);
       } catch (err) {
         console.error('Error al cargar pabellones:', err);
       }
     };
-  
     cargarPabellones();
   }, []);
 
+  useEffect(() => {
+    const esAsignaturaValida = nuevoCurso.asignatura.trim().length > 0;
+    const esSalaValida = !isNaN(nuevoCurso.sala) && nuevoCurso.sala > 0;
+    const esDepartamentoValido = nuevoCurso.departamento.trim().length > 0;
+    const horarioDisponible = !tablaHorario?.[nuevoCurso.bloque]?.[nuevoCurso.dia];
+
+    if (esAsignaturaValida && esSalaValida && esDepartamentoValido && horarioDisponible) {
+      setFormularioValido(true);
+    } else {
+      setFormularioValido(false);
+    }
+  }, [nuevoCurso, tablaHorario]);
 
   const handleAgregar = async () => {
-    if (!nuevoCurso.departamento) {
-      setMsg('Por favor, selecciona un pabellón.');
-      return; // Asegura que el usuario haya seleccionado un pabellón
+    if (!nuevoCurso.asignatura.trim()) {
+      mostrarError('Error en el formulario', 'El nombre de la asignatura no puede estar vacío.');
+      return;
     }
-  
-    // Preparamos el objeto con los nombres correctos
-    const cursoData = {
-      block: nuevoCurso.bloque,         // 'A', 'B', etc.
-      classroom: String(nuevoCurso.sala), // Aseguramos que sea un string
-      day: nuevoCurso.dia,              // 'lunes', 'martes', etc.
-      pavilion: nuevoCurso.departamento, // Nombre del pabellón
-      subject: nuevoCurso.asignatura    // Nombre de la asignatura
-    };
-  
+
+    if (!nuevoCurso.departamento.trim()) {
+      mostrarError('Error en el formulario', 'Por favor, selecciona un pabellón.');
+      return;
+    }
+
+    if (isNaN(nuevoCurso.sala) || nuevoCurso.sala <= 0) {
+      mostrarError('Error en el formulario', 'Ingresa un número de sala válido.');
+      return;
+    }
+
+    const horarioExistente = tablaHorario?.[nuevoCurso.bloque]?.[nuevoCurso.dia];
+    if (horarioExistente) {
+      mostrarError('Horario ocupado', 'Ya existe un curso en ese bloque y día.');
+      return;
+    }
+
     try {
-      // Llamada a la función que envía el curso al backend
+      const cursoData = {
+        block: nuevoCurso.bloque,
+        classroom: String(nuevoCurso.sala),
+        day: nuevoCurso.dia,
+        pavilion: nuevoCurso.departamento,
+        subject: nuevoCurso.asignatura
+      };
+
       const res = await agregarCursoBackend(cursoData);
-  
+
       if (res) {
-        // Refetch (Reconsulta) los horarios actualizados del servidor
         const horariosActualizados = await buscarHorariosPorUsuario();
-        setTablaHorario(generarTablaHorario(horariosActualizados)); // Actualizamos el estado con los nuevos horarios
-        
-        setMsg('Curso agregado!');
-        setNuevoCurso({ 
+        setTablaHorario(generarTablaHorario(horariosActualizados));
+        Alert.alert('Éxito', 'Curso agregado exitosamente');
+        setNuevoCurso({
           bloque: 'A',
           dia: 'lunes',
           asignatura: '',
           sala: 101,
           departamento: ''
         });
-        setMostrarFormulario(false); // Ocultar el formulario después de agregar el curso
+        setMostrarFormulario(false);
       } else {
-        setMsg('Error al agregar el curso: ' + (res.message || "No se recibieron datos"));
+        mostrarError('Error al agregar', res.message || 'No se recibieron datos del servidor.');
       }
     } catch (error) {
       console.error('Error al agregar el curso:', error);
-      setMsg('Hubo un problema al agregar el curso. Intenta nuevamente.');
+      mostrarError('Error de red', 'Hubo un problema al agregar el curso. Intenta nuevamente.');
     }
   };
 
-  const handleEliminarCurso = async (bloque:string, dia:string, asignatura:string) => {
-
-      const curso = {
-        bloque,
-        dia,
-        asignatura,
-        sala: 999,
-        departamento: 'test',
-      };
-    console.log("curso eliminado",curso)
+  const handleEliminarCurso = async (bloque: string, dia: string, asignatura: string) => {
+    const curso = { bloque, dia, asignatura, sala: 999, departamento: 'test' };
     const res = await eliminarCurso(curso);
     if (res.ok) {
       const horarios = await buscarHorariosPorUsuario();

@@ -7,14 +7,15 @@ import { obtenerClasesConCoordenadas } from '../src/validacion';
 export default function MapaClases() {
   const [clasesCoordenadas, setClasesCoordenadas] = useState<ClaseConCoordenadas[]>([]);
   const [claseMasCercana, setClaseMasCercana] = useState<ClaseConMinutos | null>(null);
+  const [claseActual, setClaseActual] = useState<ClaseConCoordenadas | null>(null);
 
   const escala = 2; // Factor de escala
 
   const hoy = new Date();
   const diaActual: Dia = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()] as Dia;
-  const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
+  const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes(); // Hora en minutos
 
-  // Identificar el bloque actual y el siguiente bloque
+  // Identificar el bloque actual
   const bloqueActual = bloques.find(b => {
     const { inicio, fin } = bloquesHorario[b];
     const inicioMin = parseInt(inicio.split(':')[0]) * 60 + parseInt(inicio.split(':')[1]);
@@ -22,7 +23,10 @@ export default function MapaClases() {
     return horaActualMin >= inicioMin && horaActualMin < finMin; // Bloque actual si la hora está dentro del rango
   });
 
-  const indiceBloqueSiguiente = bloqueActual ? bloques.indexOf(bloqueActual) + 1 : -1;
+  // Si no hay bloque actual, lo ponemos en 'A' o en un bloque predeterminado
+  const bloqueActualValido = bloqueActual ? bloqueActual : 'A';
+
+  const indiceBloqueSiguiente = bloques.indexOf(bloqueActualValido) + 1;
   const siguienteBloque: Bloque | null = bloques[indiceBloqueSiguiente] || null;
 
   useEffect(() => {
@@ -41,6 +45,10 @@ export default function MapaClases() {
           })
           .sort((a, b) => a.minutosInicio - b.minutosInicio);
 
+        // Buscar la clase actual
+        const claseActual = clasesHoy.find(c => c.minutosInicio <= horaActualMin && (bloques.indexOf(c.bloque) === bloques.indexOf(bloqueActualValido) || bloques.indexOf(c.bloque) < bloques.indexOf(bloqueActualValido)));
+        setClaseActual(claseActual || null);
+
         // Buscar la siguiente clase
         const siguienteClase = clasesHoy.find(c => c.minutosInicio > horaActualMin);
         setClaseMasCercana(siguienteClase || null);
@@ -50,7 +58,7 @@ export default function MapaClases() {
     };
 
     cargarDatosMapa();
-  }, [diaActual]);
+  }, [diaActual, horaActualMin, bloqueActualValido]);
 
   return (
     <View style={{ flex: 1, marginTop: 10, borderWidth: 1, borderColor: 'white' }}>
@@ -89,6 +97,21 @@ export default function MapaClases() {
             />
           </Svg>
 
+          {/* Marca la clase actual en verde */}
+          {claseActual && (
+            <Image
+              key={claseActual.bloque}
+              source={require('../src/verde.gif')} // Usamos verde.gif para la clase actual
+              style={{
+                width: 30,
+                height: 30,
+                position: 'absolute',
+                top: 602 - claseActual.y * escala - 24,
+                left: claseActual.x * escala - 12,
+              }}
+            />
+          )}
+
           {/* Solo muestra la próxima clase en amarillo */}
           {claseMasCercana && (
             <Image
@@ -98,8 +121,8 @@ export default function MapaClases() {
                 width: 30,
                 height: 30,
                 position: 'absolute',
-                top: 602 - claseMasCercana.x * escala - 24,
-                left: claseMasCercana.y * escala - 12,
+                top: 602 - claseMasCercana.y * escala - 24,
+                left: claseMasCercana.x * escala - 12,
               }}
             />
           )}

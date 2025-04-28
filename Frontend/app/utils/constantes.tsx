@@ -16,8 +16,8 @@ export const bloquesHorario: Record<Bloque, { inicio: string; fin: string }> = {
 };
 export type Dia = 'lunes' | 'martes' | 'miércoles' | 'jueves' | 'viernes' | 'sábado';
 export type TablaHorario = {
-  [bloque in Bloque]?: {
-    [dia in Dia]?: string;
+  [bloque: string]: {
+    [dia: string]: string;
   };
 };
 

@@ -15,9 +15,11 @@ export async function enviarCredencialesAlBackend(usuario: string, clave: string
   });
 
   if (!response.ok) {
-    const errorText = true;
-    //console.log(errorText);
-    throw new Error(`Error en la conexión al backend: ${response.status} - ${errorText}`);
+    const errorText = await response.json();
+    if (errorText.error_code === 'INVALID_CREDENTIALS') {
+      throw new Error("Credenciales inválidas. Por favor, revisa tu correo o contraseña.");
+    }
+    throw new Error(`Error en la conexión al backend: ${response.status} - ${errorText.message}`);
   }
 
   const tokens = await response.json();

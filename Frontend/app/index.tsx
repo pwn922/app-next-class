@@ -30,21 +30,22 @@ export default function HomeScreen() {
         
         // Redirigimos a la pantalla principal
         router.push('/layout');
-
-        /*
-        router.push({
-          pathname: '/layout',
-          params: { usuario, clave }
-        });
-        */
       } else {
         setMensajeError("Error al obtener los tokens.");
       }
-    } catch (error) {
-      setMensajeError("Error inesperado al iniciar sesión");
-      console.error("Error en la autenticación:", error);
+    } catch (error: unknown) {
+      // Verificamos que el error sea del tipo 'Error' y luego mostramos el mensaje
+      if (error instanceof Error) {
+        setMensajeError(error.message);
+        alert(error.message); // Esta es la alerta con el mensaje de error
+        
+      } else {
+        setMensajeError("Error inesperado al iniciar sesión");
+        alert("Error inesperado al iniciar sesión");
+      }
     }
   };
+  
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#8B4000' }}>
