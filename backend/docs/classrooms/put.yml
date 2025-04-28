@@ -1,0 +1,35 @@
+tags:
+  - "Classroom"
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: ID of the classroom to update
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: "#/definitions/ClassroomUpdate"
+responses:
+  "200":
+    description: Classroom updated successfully
+    schema:
+      $ref: "#/definitions/Classroom"
+  "404":
+    description: Classroom not found
+  "500":
+    description: Internal server error
+definitions:
+  ClassroomUpdate:
+    type: object
+    properties:
+      number:
+        type: integer
+      pavilion_id:
+        type: string
+        format: uuid
+    example:
+      number: 202
+      pavilion_id: "9e8f7d6c-1234-4567-89ab-fedcba987654"

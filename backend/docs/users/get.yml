@@ -1,12 +1,15 @@
 tags:
   - "User"
-parameters:
-  - name: user_id
-    in: path
-    description: ID of the user to retrieve.
-    required: true
-    type: string
-    format: uuid # Cambiado a UUID
+parameters: []
+responses:
+  "200":
+    description: Successful operation, user retrieved successfully.
+    schema:
+      $ref: "#/definitions/User"
+  "404":
+    description: User not found. The user corresponding to the ID extracted from the JWT token does not exist.
+  "500":
+    description: Internal server error. An unexpected error occurred during the process.
 definitions:
   User:
     type: object
@@ -14,24 +17,16 @@ definitions:
       id:
         type: string
         format: uuid
-        description: The user's unique ID.
-      username:
-        type: string
-        description: The user's username.
+        description: The user's UUID.
       email:
         type: string
         format: email
         description: The user's email address.
+      created_at:
+        type: string
+        format: date-time
+        description: Timestamp when the user was created.
     example:
-      id: "123e4567-e89b-12d3-a456-426614174000"
-      username: "john_doe"
+      id: "b01a3e46-27a2-4ef7-9622-38b2ffb63a51"
       email: "john.doe@example.com"
-responses:
-  "200":
-    description: Successful operation
-    schema:
-      $ref: "#/definitions/User"
-  "400":
-    description: Invalid user ID supplied
-  "404":
-    description: User not found
+      created_at: "2025-04-12T14:30:00Z"

@@ -1,48 +1,67 @@
 tags:
-  - "Authentication"
-summary: User Login
-description: Authenticates a user and returns a token.
+  - "Auth"
+summary: Login with email and password
 parameters:
   - in: body
-    name: credentials
-    description: User credentials for login.
+    name: body
     required: true
     schema:
-      type: object
-      properties:
-        email:
-          type: string
-          description: The user's username.
-      example:
-        email: "alumno12@ucn.cl"
+      $ref: "#/definitions/LoginRequest"
 responses:
   "200":
-    description: Successful login, returns an authentication token.
+    description: Login successful
     schema:
-      type: object
-      properties:
-        token:
-          type: string
-          description: The authentication token.
-      example:
-        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNzA4MzQ1MTIzLCJleHAiOjE3MDgzNTUxMjN9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+      $ref: "#/definitions/LoginResponse"
   "401":
-    description: Invalid credentials.
+    description: Invalid email or password
     schema:
-      type: object
-      properties:
-        message:
-          type: string
-          description: Error message.
-      example:
-        message: "Invalid email."
+      $ref: "#/definitions/ErrorResponse"
   "500":
-    description: Internal server error.
+    description: Unexpected error during login
     schema:
-      type: object
-      properties:
-        message:
-          type: string
-          description: Error message.
-      example:
-        message: "Internal server error."
+      $ref: "#/definitions/ErrorResponse"
+
+definitions:
+  LoginRequest:
+    type: object
+    properties:
+      email:
+        type: string
+        format: email
+        description: Email address used for login
+      password:
+        type: string
+        format: password
+        description: Password for the account
+    required:
+      - email
+      - password
+    example:
+      email: "john.doe@example.com"
+      password: "secret123"
+
+  LoginResponse:
+    type: object
+    properties:
+      message:
+        type: string
+        example: "Login successful."
+      data:
+        type: object
+        properties:
+          access_token:
+            type: string
+            description: JWT access token
+          refresh_token:
+            type: string
+            description: JWT refresh token
+
+  ErrorResponse:
+    type: object
+    properties:
+      message:
+        type: string
+        example: "Invalid email or password."
+      error_code:
+        type: string
+        example: "INVALID_CREDENTIALS"

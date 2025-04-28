@@ -1,0 +1,38 @@
+tags:
+  - "Subject"
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: ID of the subject to update
+  - in: body
+    name: body
+    description: Updated subject data
+    required: true
+    schema:
+      $ref: "#/definitions/SubjectUpdate"
+responses:
+  "200":
+    description: Subject updated successfully
+    schema:
+      $ref: "#/definitions/Subject"
+  "400":
+    description: Invalid input
+  "404":
+    description: Subject not found
+  "500":
+    description: Internal server error
+
+definitions:
+  SubjectUpdate:
+    type: object
+    properties:
+      name:
+        type: string
+      code:
+        type: string
+    example:
+      name: "Bioquímica Avanzada"
+      code: "BIOQ203"

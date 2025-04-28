@@ -1,0 +1,11 @@
+tags:
+  - "User"
+responses:
+  "200":
+    description: A list of users
+    schema:
+      type: array
+      items:
+        $ref: "#/definitions/User"
+  "500":
+    description: Internal server error

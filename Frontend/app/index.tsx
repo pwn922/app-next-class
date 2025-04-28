@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { validarCredenciales } from './src/validacion';
 import { enviarCredencialesAlBackend } from './src/conexion_back/conexion';
 import {BlackBox} from './utils/constantes'
+import { saveTokens } from '@/storage/storage';
 
 
 const blackbox = new BlackBox();
@@ -15,52 +16,36 @@ export default function HomeScreen() {
   const [modoDemo, setModoDemo] = useState(false); 
   const router = useRouter();
 
-  useEffect(() => {//aqui se decide si se trabaja con el backend o el demo (es solo un cambio del nombre) 
-    const testBackend = async () => {
-      try {
-        await enviarCredencialesAlBackend('ping', 'test');
-        setModoDemo(false);
-      } catch (err) {
-        console.warn('Conexión con el backend fallida. Usando modo demo.');
-        setModoDemo(true);
-      }
-    };
-
-    testBackend();
-  }, []);
-
   const iniciarSesion = async () => {
     blackbox.setUsuario(usuario);
     blackbox.setClave(clave);
-
+  
     try {
-      const resultado = await validarCredenciales(blackbox.getUsuario(), resultado );
-      if (resultado === 2) {
-        setMensajeError("Usuario incorrecto");
-      } else if (resultado === 3) {
-        setMensajeError("Contraseña incorrecta");
+      // Hacemos login y obtenemos el access_token
+      const response = await enviarCredencialesAlBackend(usuario, clave);
+      
+      if (response && response.data && response.data.access_token && response.data.refresh_token) {
+        // Guardamos el access_token en AsyncStorage
+        await saveTokens(response.data.access_token, response.data.refresh_token);
+        
+        // Redirigimos a la pantalla principal
+        router.push('/layout');
+      } else {
+        setMensajeError("Error al obtener los tokens.");
       }
-      else {
-        if (resultado === 1) {
-          setMensajeError('');
-          router.push({
-            pathname: '/layout',
-            params: { usuario: blackbox.getUsuario(), clave: resultado }
-          });
-        }
-        else {
-          setMensajeError('');
-          router.push({
-            pathname: '/layout',
-            params: { usuario: blackbox.getUsuario(), clave: resultado }
-          });
-        }
+    } catch (error: unknown) {
+      // Verificamos que el error sea del tipo 'Error' y luego mostramos el mensaje
+      if (error instanceof Error) {
+        setMensajeError(error.message);
+        alert(error.message); // Esta es la alerta con el mensaje de error
+        
+      } else {
+        setMensajeError("Error inesperado al iniciar sesión");
+        alert("Error inesperado al iniciar sesión");
       }
-    } catch (error) {
-      setMensajeError("Error inesperado al iniciar sesión");
-      console.error("Error en la autenticación:", error);
     }
   };
+  
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#8B4000' }}>

@@ -1,0 +1,33 @@
+tags:
+  - "Subject"
+parameters:
+  - in: body
+    name: body
+    description: Subject creation request
+    required: true
+    schema:
+      $ref: "#/definitions/SubjectCreate"
+responses:
+  "201":
+    description: Subject created successfully
+    schema:
+      $ref: "#/definitions/Subject"
+  "400":
+    description: Invalid input
+  "500":
+    description: Internal server error
+
+definitions:
+  SubjectCreate:
+    type: object
+    properties:
+      name:
+        type: string
+      code:
+        type: string
+    required:
+      - name
+      - code
+    example:
+      name: "Bioquímica"
+      code: "BIOQ202"

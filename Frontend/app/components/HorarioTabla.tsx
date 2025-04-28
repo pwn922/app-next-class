@@ -1,30 +1,39 @@
 //Aqui se maneja la talba del horario, ademas se agregan cursos  o eliminan respectivamente
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, TextInput, Alert, TouchableOpacity, ScrollView } from 'react-native';
-import { bloquesHorario, bloques, dias } from '../utils/constantes';
-import { agregarCurso, eliminarCurso ,buscarHorariosPorUsuario, obtenerNombresDepartamentos} from '../src/validacion';
+import { bloquesHorario, bloques, dias, TablaHorario } from '../utils/constantes';
+import { agregarCurso, eliminarCurso ,buscarHorariosPorUsuario } from '../src/validacion';
 import { generarTablaHorario } from '../utils/funciones';
+import { agregarCursoBackend, obtenerNombresDepartamentosBackend } from '../src/conexion_back/conexion';
 
-export default function HorarioTabla({ usuario, clave }) {
-  const [tablaHorario, setTablaHorario] = useState({});
+export default function HorarioTabla({ }) {
+  const [tablaHorario, setTablaHorario] = useState<TablaHorario>({});
   const [msg, setMsg] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarEliminar, setMostrarEliminar] = useState(false);
-  const [departamentos, setDepartamentos] = useState([]);
-
+  const [departamentos, setDepartamentos] = useState<string[]>([]);
+  const [formularioValido, setFormularioValido] = useState(false);
   const [nuevoCurso, setNuevoCurso] = useState({
     bloque: 'A',
     dia: 'lunes',
     asignatura: '',
     sala: 101,
-    departamento: 'x',
+    departamento: '',
   });
+
+  const mostrarError = (titulo: string, mensaje: string) => {
+    Alert.alert(
+      titulo,
+      mensaje,
+      [{ text: 'OK', style: 'destructive' }],
+      { cancelable: true }
+    );
+  };
+
   useEffect(() => {
     const cargarHorario = async () => {
-      if (!usuario) return;
-
       try {
-        const horarios = await buscarHorariosPorUsuario(usuario, clave);
+        const horarios = await buscarHorariosPorUsuario();
         const tabla = generarTablaHorario(horarios);
         setTablaHorario(tabla);
       } catch (err) {
@@ -33,42 +42,93 @@ export default function HorarioTabla({ usuario, clave }) {
       }
     };
     cargarHorario();
-  }, [usuario]);
+  }, []);
+
   useEffect(() => {
-    const cargarDepartamentos = async () => {
+    const cargarPabellones = async () => {
       try {
-        const departamentos = await obtenerNombresDepartamentos( clave);
-        setDepartamentos(departamentos || []);
+        const pabellonesCompletos = await obtenerNombresDepartamentosBackend();
+        const nombresPabellones = pabellonesCompletos.map((p: { name: string }) => p.name);
+        setDepartamentos(nombresPabellones || []);
       } catch (err) {
-        console.error('Error al cargar departamentos:', err);
+        console.error('Error al cargar pabellones:', err);
       }
     };
-  
-    cargarDepartamentos();
+    cargarPabellones();
   }, []);
-  const handleAgregar = async () => {
-    const res = await agregarCurso(usuario, nuevoCurso, clave);
-    if (res.ok) {
-      const horarios = await buscarHorariosPorUsuario(usuario, clave);
-      setTablaHorario(generarTablaHorario(horarios));
-      setMsg('Curso agregado!');
-      setNuevoCurso({ ...nuevoCurso, asignatura: '' });
-      setMostrarFormulario(false);
+
+  useEffect(() => {
+    const esAsignaturaValida = nuevoCurso.asignatura.trim().length > 0;
+    const esSalaValida = !isNaN(nuevoCurso.sala) && nuevoCurso.sala > 0;
+    const esDepartamentoValido = nuevoCurso.departamento.trim().length > 0;
+    const horarioDisponible = !tablaHorario?.[nuevoCurso.bloque]?.[nuevoCurso.dia];
+
+    if (esAsignaturaValida && esSalaValida && esDepartamentoValido && horarioDisponible) {
+      setFormularioValido(true);
     } else {
-      setMsg('Error al agregar el curso');
+      setFormularioValido(false);
+    }
+  }, [nuevoCurso, tablaHorario]);
+
+  const handleAgregar = async () => {
+    if (!nuevoCurso.asignatura.trim()) {
+      mostrarError('Error en el formulario', 'El nombre de la asignatura no puede estar vacío.');
+      return;
+    }
+
+    if (!nuevoCurso.departamento.trim()) {
+      mostrarError('Error en el formulario', 'Por favor, selecciona un pabellón.');
+      return;
+    }
+
+    if (isNaN(nuevoCurso.sala) || nuevoCurso.sala <= 0) {
+      mostrarError('Error en el formulario', 'Ingresa un número de sala válido.');
+      return;
+    }
+
+    const horarioExistente = tablaHorario?.[nuevoCurso.bloque]?.[nuevoCurso.dia];
+    if (horarioExistente) {
+      mostrarError('Horario ocupado', 'Ya existe un curso en ese bloque y día.');
+      return;
+    }
+
+    try {
+      const cursoData = {
+        block: nuevoCurso.bloque,
+        classroom: String(nuevoCurso.sala),
+        day: nuevoCurso.dia,
+        pavilion: nuevoCurso.departamento,
+        subject: nuevoCurso.asignatura
+      };
+
+      const res = await agregarCursoBackend(cursoData);
+
+      if (res) {
+        const horariosActualizados = await buscarHorariosPorUsuario();
+        setTablaHorario(generarTablaHorario(horariosActualizados));
+        Alert.alert('Éxito', 'Curso agregado exitosamente');
+        setNuevoCurso({
+          bloque: 'A',
+          dia: 'lunes',
+          asignatura: '',
+          sala: 101,
+          departamento: ''
+        });
+        setMostrarFormulario(false);
+      } else {
+        mostrarError('Error al agregar', res.message || 'No se recibieron datos del servidor.');
+      }
+    } catch (error) {
+      console.error('Error al agregar el curso:', error);
+      mostrarError('Error de red', 'Hubo un problema al agregar el curso. Intenta nuevamente.');
     }
   };
-  const handleEliminarCurso = async (bloque, dia, asignatura) => {
-    const curso = {
-      bloque,
-      dia,
-      asignatura,
-      sala: 999,
-      departamento: 'test',
-    };
-    const res = await eliminarCurso(usuario, curso, clave);
+
+  const handleEliminarCurso = async (bloque: string, dia: string, asignatura: string) => {
+    const curso = { bloque, dia, asignatura, sala: 999, departamento: 'test' };
+    const res = await eliminarCurso(curso);
     if (res.ok) {
-      const horarios = await buscarHorariosPorUsuario(usuario, clave);
+      const horarios = await buscarHorariosPorUsuario();
       setTablaHorario(generarTablaHorario(horarios));
       setMsg(`Curso "${asignatura}" eliminado`);
     } else {
@@ -110,7 +170,7 @@ export default function HorarioTabla({ usuario, clave }) {
                 borderColor: 'white',
                 justifyContent: 'center',
               }}>
-              <Text style={{ color: 'white', fontSize: 12, textAlign: 'center' }}>
+                <Text style={{ color: 'white', fontSize: 12, textAlign: 'center' }}>
                 {tablaHorario?.[bloque]?.[dia] || '-'}
               </Text>
             </View>
@@ -184,7 +244,7 @@ export default function HorarioTabla({ usuario, clave }) {
             ))}
           </View>
 
-          <Text style={{ color: 'white', marginBottom: 4 }}>Departamento:</Text>
+          <Text style={{ color: 'white', marginBottom: 4 }}>Pabellón:</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
             {departamentos.map((departamento) => (
               <TouchableOpacity
@@ -213,7 +273,8 @@ export default function HorarioTabla({ usuario, clave }) {
             }}
             value={String(nuevoCurso.sala)}
             onChangeText={(text) => {
-              const soloNumeros = text.replace(/[^0-9]/g, '');
+              const soloNumeros = parseInt(text.replace(/[^0-9]/g, ''), 10) || 0;
+
               setNuevoCurso({ ...nuevoCurso, sala: soloNumeros });
             }}
             placeholder="Número de sala"

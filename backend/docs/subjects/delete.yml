@@ -1,0 +1,16 @@
+tags:
+  - "Subject"
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: ID of the subject to delete
+responses:
+  "204":
+    description: Subject deleted successfully
+  "404":
+    description: Subject not found
+  "500":
+    description: Internal server error

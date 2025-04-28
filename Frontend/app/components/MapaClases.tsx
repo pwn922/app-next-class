@@ -7,23 +7,26 @@ import { obtenerClasesConCoordenadas } from '../src/validacion';
 export default function MapaClases() {
   const [clasesCoordenadas, setClasesCoordenadas] = useState<ClaseConCoordenadas[]>([]);
   const [claseMasCercana, setClaseMasCercana] = useState<ClaseConMinutos | null>(null);
+  const [claseActual, setClaseActual] = useState<ClaseConCoordenadas | null>(null);
 
-  //const escalaX = 3;
-  //const escalaY = 3;
-  const escala = 2;
+  const escala = 2; // Factor de escala
 
   const hoy = new Date();
   const diaActual: Dia = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][hoy.getDay()] as Dia;
-  const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
+  const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes(); // Hora en minutos
 
+  // Identificar el bloque actual
   const bloqueActual = bloques.find(b => {
     const { inicio, fin } = bloquesHorario[b];
     const inicioMin = parseInt(inicio.split(':')[0]) * 60 + parseInt(inicio.split(':')[1]);
     const finMin = parseInt(fin.split(':')[0]) * 60 + parseInt(fin.split(':')[1]);
-    return horaActualMin >= inicioMin && horaActualMin < finMin;
+    return horaActualMin >= inicioMin && horaActualMin < finMin; // Bloque actual si la hora está dentro del rango
   });
 
-  const indiceBloqueSiguiente = bloqueActual ? bloques.indexOf(bloqueActual) + 1 : -1;
+  // Si no hay bloque actual, lo ponemos en 'A' o en un bloque predeterminado
+  const bloqueActualValido = bloqueActual ? bloqueActual : 'A';
+
+  const indiceBloqueSiguiente = bloques.indexOf(bloqueActualValido) + 1;
   const siguienteBloque: Bloque | null = bloques[indiceBloqueSiguiente] || null;
 
   useEffect(() => {
@@ -32,8 +35,9 @@ export default function MapaClases() {
         const coordenadas = await obtenerClasesConCoordenadas();
         setClasesCoordenadas(coordenadas || []);
 
+        // Filtrar solo las clases del día actual
         const clasesHoy = (coordenadas || [])
-          .filter(c => c.dia === diaActual)
+          .filter(c => c.dia === diaActual) // Solo las clases del día actual
           .map(c => {
             const bloque = bloquesHorario[c.bloque];
             const inicioMin = parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
@@ -41,7 +45,12 @@ export default function MapaClases() {
           })
           .sort((a, b) => a.minutosInicio - b.minutosInicio);
 
-        const siguienteClase = clasesHoy.find(c => c.minutosInicio >= horaActualMin);
+        // Buscar la clase actual
+        const claseActual = clasesHoy.find(c => c.minutosInicio <= horaActualMin && (bloques.indexOf(c.bloque) === bloques.indexOf(bloqueActualValido) || bloques.indexOf(c.bloque) < bloques.indexOf(bloqueActualValido)));
+        setClaseActual(claseActual || null);
+
+        // Buscar la siguiente clase
+        const siguienteClase = clasesHoy.find(c => c.minutosInicio > horaActualMin);
         setClaseMasCercana(siguienteClase || null);
       } catch (err) {
         console.error("Error al cargar datos del mapa:", err);
@@ -49,7 +58,7 @@ export default function MapaClases() {
     };
 
     cargarDatosMapa();
-  }, []);
+  }, [diaActual, horaActualMin, bloqueActualValido]);
 
   return (
     <View style={{ flex: 1, marginTop: 10, borderWidth: 1, borderColor: 'white' }}>
@@ -81,52 +90,42 @@ export default function MapaClases() {
             <SvgImage
               x="0"
               y="0"
-              width="928"//"903"
-              height="602"//"1394"
+              width="928"
+              height="602"
               preserveAspectRatio="xMidYMid slice"
               href={require('../src/mapa.jpg')}
             />
           </Svg>
 
-                    {clasesCoordenadas.map((clase, index) => {
-            const hoy = new Date();
-            const diaActual: Dia = dias[hoy.getDay()];
-            const horaActualMin = hoy.getHours() * 60 + hoy.getMinutes();
+          {/* Marca la clase actual en verde */}
+          {claseActual && (
+            <Image
+              key={claseActual.bloque}
+              source={require('../src/verde.gif')} // Usamos verde.gif para la clase actual
+              style={{
+                width: 30,
+                height: 30,
+                position: 'absolute',
+                top: 602 - claseActual.y * escala - 24,
+                left: claseActual.x * escala - 12,
+              }}
+            />
+          )}
 
-            const bloque = bloquesHorario[clase.bloque];
-            const minutosInicio = parseInt(bloque.inicio.split(':')[0]) * 60 + parseInt(bloque.inicio.split(':')[1]);
-            const minutosFin = parseInt(bloque.fin.split(':')[0]) * 60 + parseInt(bloque.fin.split(':')[1]);
-
-            const diaActualIndex = dias.indexOf(diaActual);
-            const diaClaseIndex = dias.indexOf(clase.dia);
-            const diaSiguienteIndex = (diaActualIndex + 1) % 7;
-
-            let gif = null; 
-            if (diaClaseIndex === diaActualIndex) {
-              if (horaActualMin >= minutosInicio && horaActualMin < minutosFin) {
-                gif = require('../src/verde.gif');
-              } 
-            } else if (diaClaseIndex === diaSiguienteIndex) {
-              gif = require('../src/amarillo.gif');
-            }
-
-            // Si no hay gif asignado, no renderizar nada
-            if (!gif) return null;
-
-            return (
-              <Image
-                key={index}
-                source={gif}
-                style={{
-                  width: 30,
-                  height: 30,
-                  position: 'absolute',
-                  top: 602 - clase.x * escala - 24,
-                  left: clase.y * escala - 12,
-                }}
-              />
-            );
-          })}
+          {/* Solo muestra la próxima clase en amarillo */}
+          {claseMasCercana && (
+            <Image
+              key={claseMasCercana.bloque}
+              source={require('../src/amarillo.gif')} // Usamos amarillo.gif para la próxima clase
+              style={{
+                width: 30,
+                height: 30,
+                position: 'absolute',
+                top: 602 - claseMasCercana.y * escala - 24,
+                left: claseMasCercana.x * escala - 12,
+              }}
+            />
+          )}
         </View>
       </ScrollView>
     </View>

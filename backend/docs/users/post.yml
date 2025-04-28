@@ -7,31 +7,30 @@ parameters:
     required: true
     schema:
       $ref: '#/definitions/UserCreateRequest'
+responses:
+  "201":
+    description: User created successfully.
+    schema:
+      $ref: "#/definitions/User"
+  "400":
+    description: Bad request. Invalid input.
+  "500":
+    description: Internal server error
+
 definitions:
   UserCreateRequest:
-      type: object
-      properties:
-        username:
-          type: string
-          description: The username.
-        email:
-          type: string
-          format: email
-          description: The user's email address.
-      required:
-        - username
-        - email
-      example:
-        username: "jane_doe"
-        email: "jane.doe@example.com"
-responses:
-        201:
-          description: User created successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/definitions/User"
-        400:
-          description: Bad request. Invalid input.
-        500:
-          description: Internal server error.
+    type: object
+    properties:
+      oidc_sub:
+        type: string
+        description: The user's OIDC subject.
+      email:
+        type: string
+        format: email
+        description: The user's email address.
+    required:
+      - oidc_sub
+      - email
+    example:
+      oidc_sub: "google-oauth2|98765432109876543210"
+      email: "new.user@example.com"

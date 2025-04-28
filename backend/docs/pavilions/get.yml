@@ -1,0 +1,42 @@
+tags:
+  - "Pavilion"
+summary: Get a pavilion by ID
+parameters:
+  - name: id
+    in: path
+    required: true
+    type: string
+    format: uuid
+    description: The ID of the pavilion
+responses:
+  "200":
+    description: Pavilion found
+    schema:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Pavilion retrieved successfully."
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: "027f43b7-3348-4ae6-af89-efcf846c931d"
+            name:
+              type: string
+              example: "X"
+            x:
+              type: number
+              example: 34.5
+            y:
+              type: number
+              example: 12.1
+  "404":
+    description: Pavilion not found
+  "500":
+    description: Internal server error

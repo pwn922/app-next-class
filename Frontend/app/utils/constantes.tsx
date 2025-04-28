@@ -14,10 +14,10 @@ export const bloquesHorario: Record<Bloque, { inicio: string; fin: string }> = {
   E: { inicio: '16:15', fin: '17:45' },
   F: { inicio: '18:00', fin: '19:30' }
 };
-export type Dia = 'lunes' | 'martes' | 'miércoles' | 'jueves' | 'viernes' | 'sábado' | 'domingo';
+export type Dia = 'lunes' | 'martes' | 'miércoles' | 'jueves' | 'viernes' | 'sábado';
 export type TablaHorario = {
-  [bloque in Bloque]?: {
-    [dia in Dia]?: string;
+  [bloque: string]: {
+    [dia: string]: string;
   };
 };
 
@@ -35,15 +35,13 @@ export type ClaseConCoordenadas = {
   dia: Dia;
   x: number;
   y: number;
-  departamento: string;
-  sala: string;
   asignatura?: string;
 };
 
 export type ClaseConMinutos = ClaseConCoordenadas & { minutosInicio: number };
 
 //export const bloques = ['A', 'B', 'C', 'C2', 'D', 'E', 'F'];
-export const dias: Dia[] = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+export const dias: Dia[] = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
 export class BlackBox {
   private usuario: string;

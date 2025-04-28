@@ -1,0 +1,51 @@
+tags:
+  - "Pavilion"
+summary: Create a new pavilion
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      $ref: "#/definitions/PavilionCreateRequest"
+responses:
+  "201":
+    description: Pavilion created successfully
+    schema:
+      $ref: "#/definitions/Pavilion"
+  "400":
+    description: Invalid input
+  "500":
+    description: Internal server error
+definitions:
+  PavilionCreateRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Name of the pavilion
+      x:
+        type: number
+        description: Coordenada X
+      y:
+        type: number
+        description: Coordenada Y
+    required:
+      - nombre
+      - x
+      - y
+    example:
+      name: "Main Pavilion"
+      x: 34.5
+      y: 12.1
+  Pavilion:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      nombre:
+        type: string
+      x:
+        type: number
+      y:
+        type: number

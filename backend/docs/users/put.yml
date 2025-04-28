@@ -1,0 +1,36 @@
+tags:
+  - "User"
+parameters:
+  - name: oidc_sub
+    in: path
+    description: OIDC subject of the user to update.
+    required: true
+    type: string
+  - in: body
+    name: body
+    description: User update request.
+    required: true
+    schema:
+      $ref: '#/definitions/UserUpdateRequest'
+responses:
+  "200":
+    description: User updated successfully.
+    schema:
+      $ref: "#/definitions/User"
+  "400":
+    description: Bad request. Invalid input.
+  "404":
+    description: User not found.
+  "500":
+    description: Internal server error
+
+definitions:
+  UserUpdateRequest:
+    type: object
+    properties:
+      email:
+        type: string
+        format: email
+        description: The user's new email address.
+    example:
+      email: "updated.email@example.com"
